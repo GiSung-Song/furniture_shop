@@ -1,8 +1,11 @@
 package furniture.shop.member;
 
 import furniture.shop.configure.exception.CustomException;
+import furniture.shop.global.WithMockCustomMember;
 import furniture.shop.member.constant.MemberGender;
+import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
+import furniture.shop.member.dto.MemberUpdateDto;
 import furniture.shop.member.embed.Address;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -10,14 +13,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +37,15 @@ class MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private UserDetails userDetails;
 
     private Member member;
 
@@ -41,6 +59,7 @@ class MemberServiceTest {
                 .build();
 
         given(memberRepository.findById(any())).willReturn(Optional.ofNullable(member));
+        given(memberRepository.findByEmail(any())).willReturn(member);
     }
 
     @Test
@@ -65,6 +84,47 @@ class MemberServiceTest {
         given(memberRepository.findByEmail(any())).willThrow(CustomException.class);
 
         assertThrows(CustomException.class, () -> memberService.joinMember(joinDto));
+    }
+
+    @Test
+    void 회원_조회_테스트() {
+        setUpAuth();
+
+        MemberInfoDto memberInfo = memberService.getMemberInfo();
+
+        assertEquals(memberInfo.getEmail(), member.getEmail());
+        assertEquals(memberInfo.getPhone(), member.getPhone());
+    }
+
+    @Test
+    void 회원_수정_테스트() {
+        setUpAuth();
+
+        MemberUpdateDto memberUpdateDto = new MemberUpdateDto();
+
+        memberUpdateDto.setZipCode("13579");
+        memberUpdateDto.setCity("경기도 안산시");
+        memberUpdateDto.setStreet("테스트대로 115");
+
+        MemberInfoDto memberInfoDto = memberService.updateMember(memberUpdateDto);
+
+        assertEquals(memberInfoDto.getStreet(), memberUpdateDto.getStreet());
+    }
+
+    private void setUpAuth() {
+        member = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .build();
+
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(userDetails);
+        given(userDetails.getUsername()).willReturn("test@test.com");
+        given(memberRepository.findByEmail(any())).willReturn(member);
     }
 
     private static MemberJoinDto getMemberJoinDto() {

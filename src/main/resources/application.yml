@@ -11,3 +11,5 @@ spring:
   config:
     import:
       - application-mysql.yml
+      - application-jwt.yml
+      - application-swagger.yml

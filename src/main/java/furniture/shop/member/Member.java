@@ -61,4 +61,12 @@ public class Member {
     @Builder.Default
     private MemberRole role = MemberRole.MEMBER;
 
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
+    public void changeAddress(Address address) {
+        this.address = address;
+    }
+
 }

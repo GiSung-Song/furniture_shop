@@ -1,6 +1,8 @@
 package furniture.shop.member;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import furniture.shop.configure.exception.CustomException;
+import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberJoinDto;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +44,36 @@ class MemberControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
+    }
 
+    @Test
+    @DisplayName("회원가입 실패 테스트")
+    void 회원가입_실패_테스트() throws Exception {
+        MemberJoinDto memberJoinDto = getMemberJoinDto();
+        memberJoinDto.setEmail("test");
+
+        given(memberService.joinMember(any())).willThrow(new CustomException(CustomExceptionCode.JOIN_DUPLICATE_EXCEPTION));
+
+        mockMvc.perform(post("/member/join")
+                .content(new ObjectMapper().writeValueAsString(memberJoinDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 테스트2")
+    void 회원가입_실패_테스트2() throws Exception {
+        MemberJoinDto memberJoinDto = getMemberJoinDto();
+        memberJoinDto.setEmail("test");
+
+        mockMvc.perform(post("/member/join")
+                        .content(new ObjectMapper().writeValueAsString(memberJoinDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError())
+                .andDo(print());
     }
 
     private static MemberJoinDto getMemberJoinDto() {
