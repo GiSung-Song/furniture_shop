@@ -38,8 +38,8 @@ jobs:
           echo "${{ secrets.JWT }}
           echo "${{ secrets.MYSQL }}
           
-          echo "${{ secrets.JWT }} > ./application-jwt.yml
-          echo "${{ secrets.MYSQL }} > ./application-mysql.yml
+          echo "${{ secrets.JWT }} >> ./application-jwt.yml
+          echo "${{ secrets.MYSQL }} >> ./application-mysql.yml
 
         shell: bash
 
