@@ -31,8 +31,12 @@ jobs:
         run: |
           mkdir -p ./src/main/resources
           cd ./src/main/resources
+          
           touch ./application-jwt.yml
           touch ./application-mysql.yml
+          
+          echo "${{ secrets.JWT }}
+          echo "${{ secrets.MYSQL }}
           
           echo "${{ secrets.JWT }} > ./application-jwt.yml
           echo "${{ secrets.MYSQL }} > ./application-mysql.yml
