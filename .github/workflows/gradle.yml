@@ -30,16 +30,12 @@ jobs:
       - name: Make properties
         run: |
           mkdir -p ./src/main/resources
-          cd ./src/main/resources
-          
-          touch ./application-jwt.yml
-          touch ./application-mysql.yml
-          
-          echo "${{ secrets.JWT }}
-          echo "${{ secrets.MYSQL }}
-          
-          echo "${{ secrets.JWT }} >> ./application-jwt.yml
-          echo "${{ secrets.MYSQL }} >> ./application-mysql.yml
+
+          touch ./src/main/resources/application-jwt.yml
+          touch ./src/main/resources/application-mysql.yml
+
+          echo "${{ secrets.JWT }} > ./src/main/resources/application-jwt.yml
+          echo "${{ secrets.MYSQL }} > ./src/main/resources/application-mysql.yml
 
         shell: bash
 
