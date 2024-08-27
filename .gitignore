@@ -37,5 +37,4 @@ out/
 .vscode/
 
 ### properties ###
-application-mysql.yml
-application-jwt.yml
+*.yml
