@@ -1,7 +1,6 @@
 package furniture.shop.member;
 
 import furniture.shop.configure.exception.CustomException;
-import furniture.shop.global.WithMockCustomMember;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
@@ -17,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +33,9 @@ class MemberServiceTest {
 
     @InjectMocks
     private MemberService memberService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private MemberRepository memberRepository;
@@ -67,6 +69,7 @@ class MemberServiceTest {
         setUp();
 
         MemberJoinDto memberJoinDto = getMemberJoinDto();
+        given(memberRepository.findByEmail(any())).willReturn(null);
 
         given(memberRepository.save(any())).willReturn(member);
 
