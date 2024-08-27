@@ -36,6 +36,14 @@ jobs:
           submodules: true
           token: ${{ secrets.SUBMODULE_ACCESS_KEY }}
 
+      - name: Test Database MySQL
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          host port: 3306
+          mysql database: ${{ secrets.MYSQL_DBNAME }}
+          mysql user: ${{ secrets.MYSQL_USERNAME }}
+          mysql password: ${{ secrets.MYSQL_PASSWORD }}
+
       - name: Grant Execute Permission for gradlew
         run: chmod +x ./gradlew
 
