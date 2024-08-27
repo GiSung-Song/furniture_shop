@@ -38,3 +38,5 @@ out/
 
 ### properties ###
 *.yml
+
+!gradle.yml
