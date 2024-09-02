@@ -1,17 +1,21 @@
 package furniture.shop.product;
 
+import furniture.shop.configure.BaseTimeEntity;
 import furniture.shop.product.constant.ProductCategory;
+import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.embed.ProductSize;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
-public class Product {
+@DynamicInsert
+public class Product extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,8 +26,14 @@ public class Product {
     @Column(nullable = false, length = 20)
     private String productName;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ProductCategory category;
+    private ProductCategory productCategory;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private ProductStatus productStatus = ProductStatus.SELLING;
 
     @ColumnDefault("0")
     private int stock;
@@ -39,4 +49,24 @@ public class Product {
 
     @ColumnDefault("0")
     private Long sellingCount;
+
+    public void updateProductStatus(ProductStatus productStatus) {
+        this.productStatus = productStatus;
+    }
+
+    public void updateStock(int stock) {
+        this.stock = stock;
+    }
+
+    public void updatePrice(int price) {
+        this.price = price;
+    }
+
+    public void updateSize(ProductSize productSize) {
+        this.size = productSize;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
 }

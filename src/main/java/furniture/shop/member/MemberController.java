@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Response Member", description = "Response Member API")
+@Tag(name = "Member API", description = "Member API")
 public class MemberController {
 
     private final MemberService memberService;
@@ -66,7 +66,7 @@ public class MemberController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponse<MemberInfoDto>> updateMemberInfo(MemberUpdateDto memberUpdateDto) {
+    public ResponseEntity<ApiResponse<MemberInfoDto>> updateMemberInfo(@RequestBody MemberUpdateDto memberUpdateDto) {
         MemberInfoDto memberInfoDto = memberService.updateMember(memberUpdateDto);
 
         return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "회원정보를 수정했습니다.", memberInfoDto));

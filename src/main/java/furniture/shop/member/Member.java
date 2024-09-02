@@ -1,17 +1,14 @@
 package furniture.shop.member;
 
-import furniture.shop.member.embed.Address;
+import furniture.shop.configure.BaseTimeEntity;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.constant.MemberRole;
 import furniture.shop.member.constant.MemberStatus;
+import furniture.shop.member.embed.Address;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,7 +16,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @Builder
-public class Member {
+public class Member extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,13 +40,8 @@ public class Member {
     private int mileage;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private MemberGender gender;
-
-    @CreatedDate
-    private LocalDateTime registerDate;
-
-    @LastModifiedDate
-    private LocalDateTime updateDate;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

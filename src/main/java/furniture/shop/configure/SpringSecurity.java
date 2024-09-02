@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
+@EnableMethodSecurity
 public class SpringSecurity {
 
     private final TokenProvider tokenProvider;
@@ -69,6 +71,9 @@ public class SpringSecurity {
                 .authorizeHttpRequests((request) ->
                         request.requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/join").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/product").permitAll()
+                                .requestMatchers(HttpMethod.PATCH, "/product/{id}").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/product").hasRole("ADMIN")
                                 .anyRequest().authenticated())
                 .csrf(CsrfConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)

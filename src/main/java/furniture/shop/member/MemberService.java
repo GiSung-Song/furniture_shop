@@ -3,6 +3,7 @@ package furniture.shop.member;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.global.MemberAuthorizationUtil;
+import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
 import furniture.shop.member.dto.MemberUpdateDto;
@@ -22,7 +23,6 @@ public class MemberService {
 
     @Transactional
     public Long joinMember(MemberJoinDto dto) {
-
         Member findMember = memberRepository.findByEmail(dto.getEmail());
 
         if (findMember != null) {
@@ -35,12 +35,13 @@ public class MemberService {
                 .phone(dto.getPhone())
                 .email(dto.getEmail())
                 .address(new Address(dto.getZipCode(), dto.getCity(), dto.getStreet()))
-                .gender(dto.getMemberGender())
+                .gender(MemberGender.valueOf(dto.getMemberGender()))
                 .build();
 
         return memberRepository.save(member).getId();
     }
 
+    @Transactional
     public MemberInfoDto getMemberInfo() {
         String email = MemberAuthorizationUtil.getAuthenticationEmail();
         Member member = findMember(email);
@@ -84,7 +85,7 @@ public class MemberService {
         return member;
     }
 
-    private static MemberInfoDto entityToDto(Member member) {
+    private MemberInfoDto entityToDto(Member member) {
         MemberInfoDto memberInfoDto = new MemberInfoDto();
 
         memberInfoDto.setUsername(member.getUsername());

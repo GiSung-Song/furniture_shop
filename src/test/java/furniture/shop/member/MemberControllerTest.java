@@ -6,6 +6,7 @@ import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
+import furniture.shop.member.dto.MemberUpdateDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +112,15 @@ class MemberControllerTest {
     void 회원정보_수정_테스트() throws Exception {
         given(memberService.updateMember(any())).willReturn(getMemberInfoDto());
 
-        mockMvc.perform(patch("/member"))
+        MemberUpdateDto memberUpdateDto = new MemberUpdateDto();
+        memberUpdateDto.setStreet("12345");
+        memberUpdateDto.setCity("12345");
+        memberUpdateDto.setZipCode("12345");
+
+        mockMvc.perform(patch("/member")
+                        .content(new ObjectMapper().writeValueAsString(memberUpdateDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
     }
@@ -133,7 +142,7 @@ class MemberControllerTest {
     private static MemberJoinDto getMemberJoinDto() {
         MemberJoinDto memberJoinDto = new MemberJoinDto();
 
-        memberJoinDto.setMemberGender(MemberGender.MALE);
+        memberJoinDto.setMemberGender("MALE");
         memberJoinDto.setEmail("test@test.com");
         memberJoinDto.setPhone("01012345678");
         memberJoinDto.setPassword("123456");

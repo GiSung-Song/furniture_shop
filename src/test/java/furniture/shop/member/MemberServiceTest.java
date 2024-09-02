@@ -133,7 +133,7 @@ class MemberServiceTest {
     private static MemberJoinDto getMemberJoinDto() {
         MemberJoinDto memberJoinDto = new MemberJoinDto();
 
-        memberJoinDto.setMemberGender(MemberGender.MALE);
+        memberJoinDto.setMemberGender("MALE");
         memberJoinDto.setEmail("test@test.com");
         memberJoinDto.setPhone("01012345678");
         memberJoinDto.setPassword("123456");

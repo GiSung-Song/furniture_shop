@@ -1,5 +1,6 @@
 package furniture.shop.member.dto;
 
+import furniture.shop.configure.valid.EnumValue;
 import furniture.shop.member.constant.MemberGender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -44,5 +45,7 @@ public class MemberJoinDto {
     private String street;
 
     @Schema(description = "성별", example = "MALE")
-    private MemberGender memberGender;
+    @EnumValue(enumClass = MemberGender.class, message = "MALE or FEMALE 중 입력해주세요.")
+    @NotBlank(message = "성별을 입력해주세요.")
+    private String memberGender;
 }
