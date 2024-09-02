@@ -2,6 +2,7 @@ package furniture.shop.member;
 
 import furniture.shop.member.Member;
 import furniture.shop.member.MemberRepository;
+import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.constant.MemberRole;
 import furniture.shop.member.embed.Address;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +29,7 @@ class MemberRepositoryTest {
                 .password("123456")
                 .phone("010-1234-5678")
                 .username("테스터")
+                .gender(MemberGender.MALE)
                 .build();
     }
 
