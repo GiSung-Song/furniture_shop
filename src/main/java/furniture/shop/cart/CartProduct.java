@@ -6,10 +6,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@DynamicInsert
 public class CartProduct {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,12 +25,41 @@ public class CartProduct {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @ColumnDefault("0")
+    @ColumnDefault("1")
     private int count;
 
-    private void addCart(Cart cart) {
+    public void setCart(Cart cart) {
         this.cart = cart;
-        cart.getCartProductList().add(this);
     }
 
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
+    public static CartProduct createCartProduct(Cart cart, Product product, int count) {
+        CartProduct cartProduct = new CartProduct();
+
+        cartProduct.setCart(cart);
+        cartProduct.setProduct(product);
+        cartProduct.setCount(count);
+
+        cart.getCartProductList().add(cartProduct);
+        cart.addTotalPrice(count * product.getPrice());
+
+        return cartProduct;
+    }
+
+    public void editCount(int count) {
+        this.count = count;
+        this.cart.editTotalPrice(count * product.getPrice());
+    }
+
+    public void addCount(int count) {
+        this.cart.addTotalPrice(count * product.getPrice());
+        this.count += count;
+    }
 }

@@ -1,0 +1,126 @@
+package furniture.shop.cart;
+
+import furniture.shop.cart.dto.CartDto;
+import furniture.shop.cart.dto.CartProductAddDto;
+import furniture.shop.cart.dto.CartProductDto;
+import furniture.shop.cart.dto.CartProductEditDto;
+import furniture.shop.configure.exception.CustomException;
+import furniture.shop.configure.exception.CustomExceptionCode;
+import furniture.shop.global.MemberAuthorizationUtil;
+import furniture.shop.member.Member;
+import furniture.shop.member.MemberRepository;
+import furniture.shop.product.Product;
+import furniture.shop.product.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class CartService {
+
+    private final MemberRepository memberRepository;
+    private final ProductRepository productRepository;
+    private final CartProductRepository cartProductRepository;
+    private final CartRepository cartRepository;
+
+    @Transactional
+    public void addCart(CartProductAddDto dto) {
+        String email = MemberAuthorizationUtil.getAuthenticationEmail();
+        Member member = getMember(email);
+
+        Product product = productRepository.findById(dto.getProductId())
+                .orElseThrow(() -> new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
+
+        Cart cart = cartRepository.findByMemberId(member.getId());
+
+        //기존 장바구니가 없다면 장바구니 새로 만들기
+        if (cart == null) {
+            cart = Cart.createCart(member);
+            cartRepository.save(cart);
+        }
+
+        CartProduct savedCartProduct = cartProductRepository.findByCartIdAndProductId(cart.getId(), product.getId());
+
+        //장바구니에 기존 상품이 있다면 count ++
+        if (savedCartProduct != null) {
+            savedCartProduct.addCount(dto.getCount());
+        } else {
+            CartProduct cartProduct = CartProduct.createCartProduct(cart, product, dto.getCount());
+            cartProductRepository.save(cartProduct);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public CartDto getCart() {
+        String email = MemberAuthorizationUtil.getAuthenticationEmail();
+        Member member = getMember(email);
+
+        CartDto cartDto = new CartDto();
+
+        Cart cart = cartRepository.findByMemberId(member.getId());
+
+        if (cart == null) {
+            cart = Cart.createCart(member);
+            cartRepository.save(cart);
+        } else {
+            List<CartProductDto> cartProductDtoList = new ArrayList<>();
+
+            List<CartProduct> cartProductList = cart.getCartProductList();
+
+            for (CartProduct cartProduct : cartProductList) {
+                CartProductDto cartProductDto = new CartProductDto();
+
+                cartProductDto.setProductCode(cartProduct.getProduct().getProductCode());
+                cartProductDto.setProductName(cartProduct.getProduct().getProductName());
+                cartProductDto.setCount(cartProduct.getCount());
+                cartProductDto.setPrice(cartProduct.getCount() * cartProduct.getProduct().getPrice());
+
+                cartProductDtoList.add(cartProductDto);
+            }
+
+            cartDto.setCartProductDtoList(cartProductDtoList);
+            cartDto.setTotalPrice(cart.getTotalPrice());
+        }
+
+        return cartDto;
+    }
+
+    @Transactional
+    public void editCartProduct(CartProductEditDto editDto) {
+        String email = MemberAuthorizationUtil.getAuthenticationEmail();
+        Member member = getMember(email);
+
+        Cart cart = cartRepository.findByMemberId(member.getId());
+
+        if (cart == null) {
+            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
+        }
+
+        CartProduct cartProduct = cartProductRepository.findByCartIdAndProductId(cart.getId(), editDto.getProductId());
+
+        if (cartProduct == null) {
+            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
+        }
+
+        if (editDto.getCount() == 0) {
+            cartProductRepository.delete(cartProduct);
+        } else {
+            cartProduct.editCount(editDto.getCount());
+        }
+    }
+
+    private Member getMember(String email) {
+        Member member = memberRepository.findByEmail(email);
+
+        if (member == null) {
+            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
+        }
+
+        return member;
+    }
+
+}

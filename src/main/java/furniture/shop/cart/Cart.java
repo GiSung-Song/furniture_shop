@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@DynamicInsert
 public class Cart {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,5 +29,24 @@ public class Cart {
 
     @ColumnDefault("0")
     private int totalPrice;
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void addTotalPrice(int price) {
+        this.totalPrice += price;
+    }
+
+    public void editTotalPrice(int price) {
+        this.totalPrice = price;
+    }
+
+    public static Cart createCart(Member member) {
+        Cart cart = new Cart();
+        cart.setMember(member);
+
+        return cart;
+    }
 
 }
