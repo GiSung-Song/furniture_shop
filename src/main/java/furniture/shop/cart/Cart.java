@@ -20,8 +20,8 @@ public class Cart {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn
-    @OneToOne
+    @JoinColumn(name = "member_id")
+    @OneToOne(fetch = FetchType.LAZY)
     private Member member;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -30,7 +30,7 @@ public class Cart {
     @ColumnDefault("0")
     private int totalPrice;
 
-    public void setMember(Member member) {
+    private void setMember(Member member) {
         this.member = member;
     }
 

@@ -1,11 +1,8 @@
 package furniture.shop.member;
 
-import furniture.shop.member.Member;
-import furniture.shop.member.MemberRepository;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.constant.MemberRole;
-import furniture.shop.member.embed.Address;
-import jakarta.persistence.EntityNotFoundException;
+import furniture.shop.global.embed.Address;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

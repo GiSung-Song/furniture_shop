@@ -28,6 +28,8 @@ public class CustomUsernameAuthenticationFilter extends UsernamePasswordAuthenti
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         log.info("======로그인 시도 START======");
 
+        /* Rest API -> Web
+
         ObjectMapper om = new ObjectMapper();
 
         try {
@@ -48,8 +50,23 @@ public class CustomUsernameAuthenticationFilter extends UsernamePasswordAuthenti
             e.printStackTrace();
         }
 
+         */
+
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        //principal : username, credential : password
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
+
+        //2. 정상적인 로그인 시도
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+        //3. 로그인 성공 시
+        UserDetails principal = (UserDetails) authentication.getPrincipal();
+
         log.info("======로그인 시도 E N D======");
-        return null;
+
+        return authentication;
     }
 
     // attemptAuthentication() 실행 후 인증이 성공적으로 완료되면 실행

@@ -7,7 +7,7 @@ import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
 import furniture.shop.member.dto.MemberUpdateDto;
-import furniture.shop.member.embed.Address;
+import furniture.shop.global.embed.Address;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class MemberService {
 
+    private final MemberAuthorizationUtil memberAuthorizationUtil;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -43,8 +44,7 @@ public class MemberService {
 
     @Transactional
     public MemberInfoDto getMemberInfo() {
-        String email = MemberAuthorizationUtil.getAuthenticationEmail();
-        Member member = findMember(email);
+        Member member = memberAuthorizationUtil.getMember();
 
         MemberInfoDto memberInfoDto = entityToDto(member);
 
@@ -53,8 +53,7 @@ public class MemberService {
 
     @Transactional
     public MemberInfoDto updateMember(MemberUpdateDto memberUpdateDto) {
-        String email = MemberAuthorizationUtil.getAuthenticationEmail();
-        Member member = findMember(email);
+        Member member = memberAuthorizationUtil.getMember();
 
         if (StringUtils.hasText(memberUpdateDto.getPassword())) {
             member.changePassword(passwordEncoder.encode(memberUpdateDto.getPassword()));
@@ -73,16 +72,6 @@ public class MemberService {
         MemberInfoDto memberInfoDto = entityToDto(member);
 
         return memberInfoDto;
-    }
-
-    private Member findMember(String email) {
-        Member member = memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
-        }
-
-        return member;
     }
 
     private MemberInfoDto entityToDto(Member member) {

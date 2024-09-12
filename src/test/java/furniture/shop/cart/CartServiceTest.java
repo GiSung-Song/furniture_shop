@@ -5,9 +5,9 @@ import furniture.shop.cart.dto.CartProductAddDto;
 import furniture.shop.cart.dto.CartProductEditDto;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
+import furniture.shop.global.MemberAuthorizationUtil;
+import furniture.shop.global.embed.Address;
 import furniture.shop.member.Member;
-import furniture.shop.member.MemberRepository;
-import furniture.shop.member.embed.Address;
 import furniture.shop.product.Product;
 import furniture.shop.product.ProductRepository;
 import furniture.shop.product.constant.ProductCategory;
@@ -21,10 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
@@ -45,27 +41,18 @@ class CartServiceTest {
     ProductRepository productRepository;
 
     @Mock
-    MemberRepository memberRepository;
-
-    @Mock
     CartRepository cartRepository;
 
     @Mock
     CartProductRepository cartProductRepository;
 
+    @Mock
+    MemberAuthorizationUtil memberAuthorizationUtil;
+
     Product product;
     Member member;
     Cart cart;
     CartProduct cartProduct;
-
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
-    @Mock
-    private UserDetails userDetails;
 
     @Test
     @DisplayName("장바구니 상품 추가 테스트")
@@ -125,7 +112,7 @@ class CartServiceTest {
         cartProductAddDto.setProductId(0L);
         cartProductAddDto.setCount(5);
 
-        given(memberRepository.findByEmail(any())).willThrow(new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
+        given(memberAuthorizationUtil.getMember()).willThrow(new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
         Assertions.assertThrows(CustomException.class, () -> cartService.addCart(cartProductAddDto));
     }
@@ -147,7 +134,14 @@ class CartServiceTest {
     @Test
     @DisplayName("장바구니 조회 테스트")
     void 장바구니_조회_테스트() {
-        setUpMember();
+        member = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .build();
+
         setUpCart();
 
         product = Product.builder()
@@ -162,6 +156,8 @@ class CartServiceTest {
                 .build();
 
         cartProduct = CartProduct.createCartProduct(cart, product, 5);
+
+        given(memberAuthorizationUtil.getMember()).willReturn(member);
 
         CartDto cartDto = cartService.getCart();
 
@@ -235,7 +231,7 @@ class CartServiceTest {
         dto.setProductId(0L);
         dto.setCount(5);
 
-        when(memberRepository.findByEmail(any())).thenThrow(new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
+        when(memberAuthorizationUtil.getMember()).thenThrow(new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
         Assertions.assertThrows(CustomException.class, () -> cartService.editCartProduct(dto));
     }
@@ -290,13 +286,7 @@ class CartServiceTest {
                 .username("테스터")
                 .build();
 
-        given(memberRepository.findByEmail(any())).willReturn(member);
-
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getPrincipal()).willReturn(userDetails);
-        given(userDetails.getUsername()).willReturn("test@test.com");
-        given(memberRepository.findByEmail(any())).willReturn(member);
+        given(memberAuthorizationUtil.getMember()).willReturn(member);
     }
 
     void setUp() {
@@ -308,13 +298,7 @@ class CartServiceTest {
                 .username("테스터")
                 .build();
 
-        given(memberRepository.findByEmail(any())).willReturn(member);
-
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getPrincipal()).willReturn(userDetails);
-        given(userDetails.getUsername()).willReturn("test@test.com");
-        given(memberRepository.findByEmail(any())).willReturn(member);
+        given(memberAuthorizationUtil.getMember()).willReturn(member);
 
         product = Product.builder()
                 .productName("테스트 상품")

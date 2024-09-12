@@ -1,4 +1,4 @@
-package furniture.shop.member.embed;
+package furniture.shop.global.embed;
 
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;

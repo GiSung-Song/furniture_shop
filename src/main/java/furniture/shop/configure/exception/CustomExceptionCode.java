@@ -12,6 +12,8 @@ public enum CustomExceptionCode {
     NOT_VALID_ERROR(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     NOT_VALID_LOGIN_ERROR(HttpStatus.BAD_REQUEST, "잘못된 아이디 혹은 비밀번호입니다."),
     CODE_DUPLICATE_EXCEPTION(HttpStatus.CONFLICT, "이미 등록된 상품코드입니다."),
+    NOT_ENOUGH_PRODUCT_EXCEPTION(HttpStatus.BAD_REQUEST, "남은 수량보다 많은 수량을 주문 할 수 없습니다."),
+    NOT_SELLING_PRODUCT_EXCEPTION(HttpStatus.BAD_REQUEST, "판매중인 상품이 아닙니다."),
     ;
 
     private final HttpStatus httpStatus;

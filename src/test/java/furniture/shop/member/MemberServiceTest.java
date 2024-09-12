@@ -1,21 +1,17 @@
 package furniture.shop.member;
 
 import furniture.shop.configure.exception.CustomException;
-import furniture.shop.member.constant.MemberGender;
+import furniture.shop.global.MemberAuthorizationUtil;
+import furniture.shop.global.embed.Address;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
 import furniture.shop.member.dto.MemberUpdateDto;
-import furniture.shop.member.embed.Address;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -41,13 +37,7 @@ class MemberServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
-    @Mock
-    private UserDetails userDetails;
+    private MemberAuthorizationUtil memberAuthorizationUtil;
 
     private Member member;
 
@@ -123,11 +113,7 @@ class MemberServiceTest {
                 .username("테스터")
                 .build();
 
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getPrincipal()).willReturn(userDetails);
-        given(userDetails.getUsername()).willReturn("test@test.com");
-        given(memberRepository.findByEmail(any())).willReturn(member);
+        given(memberAuthorizationUtil.getMember()).willReturn(member);
     }
 
     private static MemberJoinDto getMemberJoinDto() {

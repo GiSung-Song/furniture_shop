@@ -8,7 +8,6 @@ import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.member.Member;
-import furniture.shop.member.MemberRepository;
 import furniture.shop.product.Product;
 import furniture.shop.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +21,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CartService {
 
-    private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
     private final CartProductRepository cartProductRepository;
     private final CartRepository cartRepository;
+    private final MemberAuthorizationUtil memberAuthorizationUtil;
 
     @Transactional
     public void addCart(CartProductAddDto dto) {
-        String email = MemberAuthorizationUtil.getAuthenticationEmail();
-        Member member = getMember(email);
+        Member member = memberAuthorizationUtil.getMember();
 
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
@@ -56,8 +54,7 @@ public class CartService {
 
     @Transactional(readOnly = true)
     public CartDto getCart() {
-        String email = MemberAuthorizationUtil.getAuthenticationEmail();
-        Member member = getMember(email);
+        Member member = memberAuthorizationUtil.getMember();
 
         CartDto cartDto = new CartDto();
 
@@ -91,8 +88,7 @@ public class CartService {
 
     @Transactional
     public void editCartProduct(CartProductEditDto editDto) {
-        String email = MemberAuthorizationUtil.getAuthenticationEmail();
-        Member member = getMember(email);
+        Member member = memberAuthorizationUtil.getMember();
 
         Cart cart = cartRepository.findByMemberId(member.getId());
 
@@ -111,16 +107,6 @@ public class CartService {
         } else {
             cartProduct.editCount(editDto.getCount());
         }
-    }
-
-    private Member getMember(String email) {
-        Member member = memberRepository.findByEmail(email);
-
-        if (member == null) {
-            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
-        }
-
-        return member;
     }
 
 }

@@ -17,26 +17,26 @@ public class CartProduct {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
     @ColumnDefault("1")
     private int count;
 
-    public void setCart(Cart cart) {
+    private void setCart(Cart cart) {
         this.cart = cart;
     }
 
-    public void setProduct(Product product) {
+    private void setProduct(Product product) {
         this.product = product;
     }
 
-    public void setCount(int count) {
+    private void setCount(int count) {
         this.count = count;
     }
 

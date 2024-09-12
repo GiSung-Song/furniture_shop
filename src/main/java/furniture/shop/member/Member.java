@@ -4,7 +4,7 @@ import furniture.shop.configure.BaseTimeEntity;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.constant.MemberRole;
 import furniture.shop.member.constant.MemberStatus;
-import furniture.shop.member.embed.Address;
+import furniture.shop.global.embed.Address;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;

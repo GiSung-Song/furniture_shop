@@ -61,15 +61,18 @@ public class SpringSecurity {
         return web -> {
             web.ignoring()
                     .requestMatchers(HttpMethod.POST, "/join", "/login")
-                    .requestMatchers(HttpMethod.GET, "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html");
+                    .requestMatchers(HttpMethod.GET, "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/login")
+                    .requestMatchers("/css/**", "/js/**", "/assets/**", "/");
         };
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChainAPI(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .authorizeHttpRequests((request) ->
-                        request.requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        request.requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**",
+                                        "/api-docs", "/api-docs/**", "/v3/api-docs/**",
+                                        "/css/**", "/js/**", "/assets/**", "/").permitAll()
                                 .requestMatchers("/join").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/product").permitAll()
                                 .requestMatchers(HttpMethod.PATCH, "/product/{id}").hasRole("ADMIN")
@@ -90,4 +93,5 @@ public class SpringSecurity {
 
         return httpSecurity.build();
     }
+
 }
