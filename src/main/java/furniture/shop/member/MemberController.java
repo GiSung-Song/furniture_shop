@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -71,4 +72,5 @@ public class MemberController {
 
         return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "회원정보를 수정했습니다.", memberInfoDto));
     }
+
 }

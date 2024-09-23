@@ -3,17 +3,19 @@ package furniture.shop.member;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.global.MemberAuthorizationUtil;
+import furniture.shop.global.embed.Address;
 import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
 import furniture.shop.member.dto.MemberUpdateDto;
-import furniture.shop.global.embed.Address;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {

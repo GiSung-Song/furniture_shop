@@ -9,7 +9,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -18,15 +20,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Slf4j
+@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
-    private TokenProvider tokenProvider;
-
-    public JwtFilter(TokenProvider tokenProvider) {
-        this.tokenProvider = tokenProvider;
-    }
+    private final RedisTemplate<String, String> redisTemplate;
+    private final TokenProvider tokenProvider;
 
     //토큰의 인증정보를 SecurityContext에 저장하는 역할 수행
     @Override
@@ -37,16 +37,36 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String jwtToken = resolveToken(request);
+        String accessToken = tokenProvider.resolveToken(request);
         String requestURI = request.getRequestURI();
 
         try {
-            if (StringUtils.hasText(jwtToken) && tokenProvider.validateToken(jwtToken)) {
-                Authentication authentication = tokenProvider.getAuthentication(jwtToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (StringUtils.hasText(accessToken) && tokenProvider.validateToken(accessToken)) {
+                String isLogout = redisTemplate.opsForValue().get(accessToken);
 
-                log.info("Security Context에 '{}' 인증 정보를 저장했습니다, URI : {}", authentication.getName(), requestURI);
+                // 로그아웃 하지 않은 경우
+                if (!StringUtils.hasText(isLogout)) {
+                    Authentication authentication = tokenProvider.getAuthentication(accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    log.info("Security Context에 '{}' 인증 정보를 저장했습니다, URI : {}", authentication.getName(), requestURI);
                 }
+            } else if (StringUtils.hasText(accessToken) && tokenProvider.isExpiredAccessToken(accessToken)) {
+                log.info("AccessToken 만료되어 있는 경우 accessToken 재발급");
+
+                Authentication authentication = tokenProvider.getAuthentication(accessToken);
+                String refreshToken = redisTemplate.opsForValue().get(authentication);
+
+                if (StringUtils.hasText(refreshToken) && tokenProvider.validateToken(refreshToken)) {
+                    // refreshToken 유효하면 accessToken 재발급
+                    log.info("AccessToken 재발급");
+
+                    String newAccessToken = tokenProvider.createToken(authentication);
+                    tokenProvider.sendAccessToken(response, newAccessToken);
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
         } catch (SecurityException | MalformedJwtException e) {
             request.setAttribute("exception", CustomJWTExceptionCode.JWT_SIGN_ERROR.getCode());
         } catch (ExpiredJwtException e) {
@@ -60,17 +80,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    //Request Header에서 토큰 정보를 꺼내오기 위한 메서드
-    private String resolveToken(HttpServletRequest request) {
-        String barerToken = request.getHeader(AUTHORIZATION_HEADER);
-
-        if (StringUtils.hasText(barerToken) && barerToken.startsWith("Bearer ")) {
-            return barerToken.substring(7);
-        }
-
-        return null;
     }
 
 }

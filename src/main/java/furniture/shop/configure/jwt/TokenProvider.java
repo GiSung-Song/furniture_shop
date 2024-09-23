@@ -8,64 +8,103 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
+@RequiredArgsConstructor
 @Slf4j
 @Component
-public class TokenProvider implements InitializingBean {
+public class TokenProvider {
 
-    private final String secret;
-    private final long tokenValidityInMilliseconds;
     private final MemberRepository memberRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    @Value("${jwt.header}")
+    private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
+    private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
+    private static final String EMAIL_CLAIM = "email";
+    private static final String TOKEN_PREFIX = "Bearer ";
+
+    @Value("${jwt.secretKey}")
+    private String secretKey;
+
+    @Value("${jwt.access.expiration}")
+    private Long accessTokenExpiration;
+
+    @Value("${jwt.refresh.expiration}")
+    private Long refreshTokenExpiration;
+
+    @Value("${jwt.access.header}")
     private String accessHeader;
 
-    private Key key;
+    private SecretKey getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
 
-    public TokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.token-validity-in-second}") long tokenValidityInMilliseconds,
-            MemberRepository memberRepository) {
-        this.secret = secret;
-        this.tokenValidityInMilliseconds = tokenValidityInMilliseconds;
-        this.memberRepository = memberRepository;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     //Authentication 객체의 권한정보를 이용해서 토큰을 생성
-    public String createToken(String email) {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.tokenValidityInMilliseconds);
+    public String createToken(Authentication authentication) {
+        log.info("AccessToken 생성");
+
+        Claims claims = Jwts.claims().setSubject(ACCESS_TOKEN_SUBJECT);
+        claims.put(EMAIL_CLAIM, authentication.getName());
+
+        Date now = new Date();
+        Date expirationDate = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
-                .setSubject("AccessToken")
-                .claim("email", email)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .setExpiration(validity)
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expirationDate)
+                .signWith(getSignKey())
                 .compact();
+    }
+
+    public String createRefreshToken(Authentication authentication) {
+        log.info("RefreshToken 생성");
+
+        Claims claims = Jwts.claims().setSubject(REFRESH_TOKEN_SUBJECT);
+        claims.put(EMAIL_CLAIM, authentication.getName());
+
+        Date now = new Date();
+        Date expirationDate = new Date(now.getTime() + refreshTokenExpiration);
+
+        String refreshToken = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expirationDate)
+                .signWith(getSignKey())
+                .compact();
+
+        redisTemplate.opsForValue().set(
+                authentication.getName(),
+                refreshToken,
+                refreshTokenExpiration,
+                TimeUnit.MILLISECONDS
+        );
+
+        return refreshToken;
     }
 
     //Token에 담겨있는 정보를 이용해 Authentication 객체를 리턴하는 메서드
     public Authentication getAuthentication(String token) {
+        log.info("인증 Authentication 가져오기");
+
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+                .setSigningKey(getSignKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -87,18 +126,84 @@ public class TokenProvider implements InitializingBean {
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
+    public String resolveToken(HttpServletRequest request) {
+        log.info("헤더에서 토큰 가져오기");
+
+        String accessToken = request.getHeader(accessHeader);
+
+        if (accessToken != null && accessToken.startsWith(TOKEN_PREFIX)) {
+            return accessToken.substring(7);
+        }
+
+        return null;
+    }
+
     public void sendAccessToken(HttpServletResponse response, String accessToken) {
         response.setStatus(HttpServletResponse.SC_OK); //200 성공
-        response.setHeader(accessHeader, "Bearer " + accessToken); //ex) AccessToken : BEARER fdjiaopjfdipoas
+        response.addHeader(accessHeader, TOKEN_PREFIX + accessToken); //ex) AccessToken : BEARER fdjiaopjfdipoas
     }
 
     //Token Valid
     public boolean validateToken(String token) {
-        Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
+        log.info("유효한 토큰인지 check");
 
-        return true;
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return true;
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT 토큰입니다.");
+        } catch (UnsupportedJwtException e) {
+            log.info("지원되지 않는 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info("JWT 토큰이 잘못되었습니다.");
+        }
+
+        return false;
+    }
+
+    public boolean isExpiredAccessToken(String token) {
+        log.info("만료된 토큰인지 체크");
+
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return true;
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("잘못된 JWT 서명입니다.");
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT 토큰입니다.");
+
+            return true;
+        } catch (UnsupportedJwtException e) {
+            log.info("지원되지 않는 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            log.info("JWT 토큰이 잘못되었습니다.");
+        }
+
+        return false;
+    }
+
+    public Long getExpiration(String accessToken) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(accessToken)
+                .getBody()
+                .getExpiration();
+
+        Long now = new Date().getTime();
+
+        return (expiration.getTime() - now);
     }
 }
