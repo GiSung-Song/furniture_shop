@@ -57,12 +57,12 @@ public class OrdersService {
         ordersRepository.save(orders);
 
         //상품 주문 시 회원의 정보들로 구성 후 주문 상황 보여주기
-        OrderProductResponseDto orderProductResponseDto = OrdersProductEntityToDTO(ordersProduct);
+        OrderProductResponseDto orderProductResponseDto = ordersProductEntityToDTO(ordersProduct);
 
         List<OrderProductResponseDto> orderProductResponseDtoList = new ArrayList<>();
         orderProductResponseDtoList.add(orderProductResponseDto);
 
-        return ordersEntityToDto(member, orders, orderProductResponseDtoList);
+        return ordersEntityToDto(orders, orderProductResponseDtoList);
     }
 
     @Transactional
@@ -102,12 +102,12 @@ public class OrdersService {
         List<OrderProductResponseDto> orderProductResponseDtoList = new ArrayList<>();
 
         for (OrdersProduct ordersProduct : ordersProducts) {
-            OrderProductResponseDto orderProductResponseDto = OrdersProductEntityToDTO(ordersProduct);
+            OrderProductResponseDto orderProductResponseDto = ordersProductEntityToDTO(ordersProduct);
 
             orderProductResponseDtoList.add(orderProductResponseDto);
         }
 
-        return ordersEntityToDto(member, orders, orderProductResponseDtoList);
+        return ordersEntityToDto(orders, orderProductResponseDtoList);
     }
 
     @Transactional
@@ -137,29 +137,37 @@ public class OrdersService {
         }
     }
 
-    @Transactional
-    public void changeOrderStatus(Long orderId) {
+    @Transactional(readOnly = true)
+    public OrderResponseDto getOrderDetail(Long orderId) {
         Orders orders = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
-        orders.updateOrdersStatus(OrdersStatus.READY_CREDIT);
+        List<OrderProductResponseDto> orderProductResponseDtoList = new ArrayList<>();
+
+        for (OrdersProduct ordersProduct : orders.getOrdersProducts()) {
+            OrderProductResponseDto orderProductResponseDto = ordersProductEntityToDTO(ordersProduct);
+
+            orderProductResponseDtoList.add(orderProductResponseDto);
+        }
+
+        return ordersEntityToDto(orders, orderProductResponseDtoList);
     }
 
-    private OrderResponseDto ordersEntityToDto(Member member, Orders orders, List<OrderProductResponseDto> orderProductResponseDtoList) {
+    private OrderResponseDto ordersEntityToDto(Orders orders, List<OrderProductResponseDto> orderProductResponseDtoList) {
         OrderResponseDto orderResponseDto = new OrderResponseDto();
 
         orderResponseDto.setOrderId(orders.getId());
-        orderResponseDto.setOrderItemDtoList(orderProductResponseDtoList);
-        orderResponseDto.setCity(member.getAddress().getCity());
-        orderResponseDto.setStreet(member.getAddress().getStreet());
-        orderResponseDto.setZipCode(member.getAddress().getZipCode());
-        orderResponseDto.setReceiver(member.getUsername());
-        orderResponseDto.setPhone(member.getPhone());
+        orderResponseDto.setOrderProductList(orderProductResponseDtoList);
+        orderResponseDto.setCity(orders.getAddress().getCity());
+        orderResponseDto.setStreet(orders.getAddress().getStreet());
+        orderResponseDto.setZipCode(orders.getAddress().getZipCode());
+        orderResponseDto.setReceiver(orders.getReceiver());
+        orderResponseDto.setPhone(orders.getPhone());
 
         return orderResponseDto;
     }
 
-    private OrderProductResponseDto OrdersProductEntityToDTO(OrdersProduct ordersProduct) {
+    private OrderProductResponseDto ordersProductEntityToDTO(OrdersProduct ordersProduct) {
         OrderProductResponseDto orderProductResponseDto = new OrderProductResponseDto();
 
         orderProductResponseDto.setOrderProductId(ordersProduct.getId());

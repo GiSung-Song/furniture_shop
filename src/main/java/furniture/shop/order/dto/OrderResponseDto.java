@@ -17,7 +17,7 @@ public class OrderResponseDto {
     private Long orderId;
 
     @Schema(description = "주문 상품 리스트")
-    private List<OrderProductResponseDto> orderItemDtoList;
+    private List<OrderProductResponseDto> orderProductList;
 
     @Schema(description = "수령인")
     private String receiver;

@@ -16,9 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,33 +40,53 @@ public class OrdersController {
     }
 
     @PostMapping("/product/{id}/orders")
-    public String singleOrders(@PathVariable("id") Long productId, OrderSingleRequestDto orderSingleRequestDto, RedirectAttributes redirectAttributes) {
+    @Operation(summary = "상품 단건 주문", description = "상품 단건 주문 API")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문을 진행합니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력입니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<ApiResponse<?>> singleOrders(@PathVariable("id") Long productId, @Valid @RequestBody OrderSingleRequestDto orderSingleRequestDto) {
         orderSingleRequestDto.setProductId(productId);
 
         OrderResponseDto sampleOrder = ordersService.createSingleOrder(orderSingleRequestDto);
 
-        redirectAttributes.addAttribute("sampleOrder", sampleOrder);
-
-        return "redirect:/orders/" + sampleOrder.getOrderId();
+        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다.", sampleOrder));
     }
 
     @GetMapping("/orders/{id}")
-    public String orderProcessing(@PathVariable("id") Long orderId, RedirectAttributes redirectAttributes, Model model) {
-
+    @Operation(summary = "상품 주문 현황 조회", description = "상품 주문 현황 조회 API")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문현황을 조회했습니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력입니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<ApiResponse<?>> getOrdersDetail(@PathVariable("id") Long orderId) {
+        //주문한 사용자인지 체크
         ordersService.isRightOrder(orderId);
-        OrderResponseDto sampleOrder = (OrderResponseDto) redirectAttributes.getAttribute("sampleOrder");
 
-        model.addAttribute("sampleOrder", sampleOrder);
+        //주문 현황 가져오기
+        OrderResponseDto orderDetail = ordersService.getOrderDetail(orderId);
 
-        return "";
+        //그냥 컨트롤러로 화면 보여주게 해야할듯?
+
+        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문현황을 조회했습니다.", orderDetail));
     }
 
-    @PostMapping("/orders/{id}")
-    public String orderFinish(@PathVariable("id") Long orderId, @Valid @ModelAttribute OrderRequestDto orderRequestDto) {
-        //post 후 redirect로 /orders/history/{id} 에서 주문 정보 보여주고 결제준비 시 결제 버튼 보이게 하기
+    @PostMapping("/cart/orders")
+    @Operation(summary = "장바구니 상품 주문", description = "장바구니 상품 주문 API")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문을 진행합니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력입니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<ApiResponse<?>> cartOrders() {
+        OrderResponseDto cartOrder = ordersService.createCartOrder();
 
-
-
-        return "";
+        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다.", cartOrder));
     }
+
 }

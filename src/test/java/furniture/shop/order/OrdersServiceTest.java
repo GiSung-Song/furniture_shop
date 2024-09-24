@@ -3,6 +3,7 @@ package furniture.shop.order;
 import furniture.shop.cart.Cart;
 import furniture.shop.cart.CartProduct;
 import furniture.shop.cart.CartRepository;
+import furniture.shop.configure.exception.CustomException;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.global.embed.Address;
 import furniture.shop.member.Member;
@@ -66,6 +67,8 @@ class OrdersServiceTest {
     Product product2;
     Cart cart;
     Cart cart2;
+    Orders orders;
+    OrdersProduct ordersProduct;
 
     @Test
     @DisplayName("단품 주문 테스트")
@@ -82,7 +85,7 @@ class OrdersServiceTest {
 
         verify(ordersRepository, times(1)).save(any());
 
-        OrderProductResponseDto orderProductResponseDto = singleOrder.getOrderItemDtoList().get(0);
+        OrderProductResponseDto orderProductResponseDto = singleOrder.getOrderProductList().get(0);
 
         Assertions.assertEquals(orderProductResponseDto.getProductName(), product.getProductName());
     }
@@ -97,7 +100,7 @@ class OrdersServiceTest {
         OrderResponseDto cartOrder = ordersService.createCartOrder();
 
         verify(ordersRepository, times(1)).save(any());
-        OrderProductResponseDto orderProductResponseDto = cartOrder.getOrderItemDtoList().get(0);
+        OrderProductResponseDto orderProductResponseDto = cartOrder.getOrderProductList().get(0);
 
         Assertions.assertEquals(orderProductResponseDto.getProductName(), product.getProductName());
     }
@@ -114,7 +117,56 @@ class OrdersServiceTest {
 
         verify(ordersRepository, times(1)).save(any());
 
-        Assertions.assertEquals(cartOrder.getOrderItemDtoList().size(), 2);
+        Assertions.assertEquals(cartOrder.getOrderProductList().size(), 2);
+    }
+
+    @Test
+    @DisplayName("주문자 확인 테스트1")
+    void 주문자_확인_테스트1() {
+        setMember();
+        setOrder();
+
+        ordersService.isRightOrder(orders.getId());
+        verify(ordersRepository, times(1)).findById(any());
+    }
+
+    @Test
+    @DisplayName("주문자 확인 테스트2")
+    void 주문자_확인_테스트2() {
+        member = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .id(0L)
+                .build();
+
+        setOrder();
+
+        Member member2 = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .id(1L)
+                .build();
+
+        given(memberAuthorizationUtil.getMember()).willReturn(member2);
+
+        Assertions.assertThrows(CustomException.class, () -> ordersService.isRightOrder(orders.getId()));
+    }
+
+    @Test
+    @DisplayName("주문 상세조회")
+    void 주문_상세조회_테스트() {
+        setOrders();
+
+        OrderResponseDto orderDetail = ordersService.getOrderDetail(orders.getId());
+
+        Assertions.assertEquals(orderDetail.getOrderProductList().size(), 2);
+        Assertions.assertEquals(orderDetail.getCity(), member.getAddress().getCity());
     }
 
     @Test
@@ -207,6 +259,55 @@ class OrdersServiceTest {
         CartProduct cartProduct2 = CartProduct.createCartProduct(cart2, product2, 5);
 
         given(cartRepository.findByMemberId(any())).willReturn(cart2);
+    }
+
+    void setOrder() {
+        orders = Orders.createOrders(member);
+
+        given(ordersRepository.findById(any())).willReturn(Optional.ofNullable(orders));
+    }
+
+    void setOrders() {
+        member = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .id(0L)
+                .build();
+
+        product = Product.builder()
+                .id(0L)
+                .productName("테스트 상품")
+                .productCode("test-1234")
+                .productCategory(ProductCategory.CHAIR)
+                .productStatus(ProductStatus.SELLING)
+                .size(new ProductSize(50.7, 102.5, 100.3))
+                .price(100)
+                .sellingCount(0L)
+                .stock(10)
+                .description("테스트 상품입니다.")
+                .build();
+
+        product2 = Product.builder()
+                .id(1L)
+                .productName("테스트 상품2")
+                .productCode("test-12345")
+                .productCategory(ProductCategory.BED)
+                .productStatus(ProductStatus.SELLING)
+                .size(new ProductSize(50.4, 102.2, 100.1))
+                .price(1050)
+                .sellingCount(0L)
+                .stock(10754)
+                .description("테스트2 상품입니다.")
+                .build();
+
+        orders = Orders.createOrders(member);
+        ordersProduct = OrdersProduct.createOrdersProduct(orders, product, 3);
+        ordersProduct = OrdersProduct.createOrdersProduct(orders, product2, 10);
+
+        given(ordersRepository.findById(any())).willReturn(Optional.ofNullable(orders));
     }
 
 }
