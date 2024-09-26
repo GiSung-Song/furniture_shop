@@ -4,6 +4,8 @@ import furniture.shop.cart.Cart;
 import furniture.shop.cart.CartRepository;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
+import furniture.shop.credit.Credit;
+import furniture.shop.credit.CreditRepository;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.member.Member;
 import furniture.shop.order.contsant.OrdersStatus;
@@ -29,13 +31,14 @@ public class OrdersService {
 
     private final MemberAuthorizationUtil memberAuthorizationUtil;
     private final OrdersRepository ordersRepository;
-    private final OrdersProductRepository ordersProductRepository;
     private final ProductRepository productRepository;
+    private final OrdersProductRepository ordersProductRepository;
     private final CartRepository cartRepository;
     private final OrdersQueryRepository ordersQueryRepository;
+    private final CreditRepository creditRepository;
 
     @Transactional
-    public OrderResponseDto createSingleOrder(OrderSingleRequestDto ordersSingleDto) {
+    public void createSingleOrder(OrderSingleRequestDto ordersSingleDto) {
         Member member = memberAuthorizationUtil.getMember();
 
         Product product = productRepository.findById(ordersSingleDto.getProductId())
@@ -55,18 +58,10 @@ public class OrdersService {
         OrdersProduct ordersProduct = OrdersProduct.createOrdersProduct(orders, product, ordersSingleDto.getCount());
 
         ordersRepository.save(orders);
-
-        //상품 주문 시 회원의 정보들로 구성 후 주문 상황 보여주기
-        OrderProductResponseDto orderProductResponseDto = ordersProductEntityToDTO(ordersProduct);
-
-        List<OrderProductResponseDto> orderProductResponseDtoList = new ArrayList<>();
-        orderProductResponseDtoList.add(orderProductResponseDto);
-
-        return ordersEntityToDto(orders, orderProductResponseDtoList);
     }
 
     @Transactional
-    public OrderResponseDto createCartOrder() {
+    public void createCartOrder() {
         Member member = memberAuthorizationUtil.getMember();
 
         Cart cart = cartRepository.findByMemberId(member.getId());
@@ -98,16 +93,6 @@ public class OrdersService {
         }
 
         ordersRepository.save(orders);
-
-        List<OrderProductResponseDto> orderProductResponseDtoList = new ArrayList<>();
-
-        for (OrdersProduct ordersProduct : ordersProducts) {
-            OrderProductResponseDto orderProductResponseDto = ordersProductEntityToDTO(ordersProduct);
-
-            orderProductResponseDtoList.add(orderProductResponseDto);
-        }
-
-        return ordersEntityToDto(orders, orderProductResponseDtoList);
     }
 
     @Transactional
@@ -128,7 +113,7 @@ public class OrdersService {
 
         // 로그인한 사용자와 주문한 사용자가 다른 경우
         if (member.getId() != orders.getMember().getId()) {
-            throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
+            throw new CustomException(CustomExceptionCode.NOT_VALID_AUTH_ERROR);
         }
 
         // 주문 진행중인 상태가 아니면 진행할 수 없음
@@ -150,7 +135,30 @@ public class OrdersService {
             orderProductResponseDtoList.add(orderProductResponseDto);
         }
 
-        return ordersEntityToDto(orders, orderProductResponseDtoList);
+        OrderResponseDto orderResponseDto = ordersEntityToDto(orders, orderProductResponseDtoList);
+
+        // 결제 완료 상태 혹은 결제 취소된 경우
+        if (orders.getOrdersStatus() != OrdersStatus.READY) {
+            Credit credit = creditRepository.findByOrdersId(orderId);
+
+            if (credit == null) {
+                throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
+            }
+
+            orderResponseDto.setOrdersStatus(orders.getOrdersStatus());
+            orderResponseDto.setAmount(credit.getAmount());
+            orderResponseDto.setMileage(credit.getSavedMileage());
+            orderResponseDto.setPayMethod(credit.getPayMethod());
+            orderResponseDto.setImpUID(credit.getImpUID());
+
+            if (orders.getOrdersStatus() == OrdersStatus.FINISH) {
+                orderResponseDto.setPaidAt(credit.getPaidAt());
+            } else if (orders.getOrdersStatus() == OrdersStatus.CANCEL) {
+                orderResponseDto.setPayCancelledAt(credit.getCancelledAt());
+            }
+        }
+
+        return orderResponseDto;
     }
 
     private OrderResponseDto ordersEntityToDto(Orders orders, List<OrderProductResponseDto> orderProductResponseDtoList) {

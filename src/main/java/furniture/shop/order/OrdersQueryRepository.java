@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static furniture.shop.order.QOrders.orders;
@@ -31,7 +32,8 @@ public class OrdersQueryRepository {
         List<Orders> content = jpaQueryFactory
                 .select(orders)
                 .from(orders)
-                .where(orders.ordersStatus.eq(OrdersStatus.READY))
+                .where(orders.ordersStatus.eq(OrdersStatus.READY)
+                        .and(orders.registerDate.lt(LocalDateTime.now().minusMinutes(30))))
                 .fetch();
 
         return content;

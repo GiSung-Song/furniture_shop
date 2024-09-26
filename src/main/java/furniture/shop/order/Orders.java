@@ -45,10 +45,6 @@ public class Orders extends BaseTimeEntity {
 
     private int mileage;
 
-    public void addTotalPrice(int price) {
-        this.totalPrice += price;
-    }
-
     private void setMember(Member member) {
         this.member = member;
     }

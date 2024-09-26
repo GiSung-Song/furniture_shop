@@ -61,4 +61,11 @@ public class Member extends BaseTimeEntity {
         this.address = address;
     }
 
+    public void savedMileage(int mileage) {
+        this.mileage += mileage;
+    }
+
+    public void minusMileage(int mileage) {
+        this.mileage -= mileage;
+    }
 }

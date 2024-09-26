@@ -81,13 +81,9 @@ class OrdersServiceTest {
         orderSingleRequestDto.setCount(10);
         orderSingleRequestDto.setProductId(0L);
 
-        OrderResponseDto singleOrder = ordersService.createSingleOrder(orderSingleRequestDto);
+        ordersService.createSingleOrder(orderSingleRequestDto);
 
         verify(ordersRepository, times(1)).save(any());
-
-        OrderProductResponseDto orderProductResponseDto = singleOrder.getOrderProductList().get(0);
-
-        Assertions.assertEquals(orderProductResponseDto.getProductName(), product.getProductName());
     }
 
     @Test
@@ -97,12 +93,9 @@ class OrdersServiceTest {
         setProduct();
         setCart();
 
-        OrderResponseDto cartOrder = ordersService.createCartOrder();
+        ordersService.createCartOrder();
 
         verify(ordersRepository, times(1)).save(any());
-        OrderProductResponseDto orderProductResponseDto = cartOrder.getOrderProductList().get(0);
-
-        Assertions.assertEquals(orderProductResponseDto.getProductName(), product.getProductName());
     }
 
     @Test
@@ -113,11 +106,9 @@ class OrdersServiceTest {
         setProduct2();
         setCart2();
 
-        OrderResponseDto cartOrder = ordersService.createCartOrder();
+        ordersService.createCartOrder();
 
         verify(ordersRepository, times(1)).save(any());
-
-        Assertions.assertEquals(cartOrder.getOrderProductList().size(), 2);
     }
 
     @Test

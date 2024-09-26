@@ -33,7 +33,7 @@ public class OrdersController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponse<?>> getOrders(@PageableDefault(size = 10, page = 0) Pageable pageable) {
+    public ResponseEntity<ApiResponse<?>> getOrdersList(@PageableDefault(size = 10, page = 0) Pageable pageable) {
         Page<OrdersListResponseDto> ordersList = ordersService.getOrdersList(pageable);
 
         return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 조회했습니다.", ordersList));
@@ -50,9 +50,9 @@ public class OrdersController {
     public ResponseEntity<ApiResponse<?>> singleOrders(@PathVariable("id") Long productId, @Valid @RequestBody OrderSingleRequestDto orderSingleRequestDto) {
         orderSingleRequestDto.setProductId(productId);
 
-        OrderResponseDto sampleOrder = ordersService.createSingleOrder(orderSingleRequestDto);
+        ordersService.createSingleOrder(orderSingleRequestDto);
 
-        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다.", sampleOrder));
+        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다."));
     }
 
     @GetMapping("/orders/{id}")
@@ -70,8 +70,6 @@ public class OrdersController {
         //주문 현황 가져오기
         OrderResponseDto orderDetail = ordersService.getOrderDetail(orderId);
 
-        //그냥 컨트롤러로 화면 보여주게 해야할듯?
-
         return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문현황을 조회했습니다.", orderDetail));
     }
 
@@ -84,9 +82,9 @@ public class OrdersController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<ApiResponse<?>> cartOrders() {
-        OrderResponseDto cartOrder = ordersService.createCartOrder();
+        ordersService.createCartOrder();
 
-        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다.", cartOrder));
+        return ResponseEntity.ok(ApiResponse.res(HttpStatus.OK, "주문을 진행합니다."));
     }
 
 }

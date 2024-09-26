@@ -58,6 +58,18 @@ public class Product extends BaseTimeEntity {
         this.sellingCount += count;
     }
 
+    public void minusSellCount(int count) {
+        this.sellingCount -= count;
+    }
+
+    public void minusStock(int stock) {
+        this.stock -= stock;
+    }
+
+    public void addStock(int stock) {
+        this.stock += stock;
+    }
+
     public void updateStock(int stock) {
         this.stock = stock;
     }
