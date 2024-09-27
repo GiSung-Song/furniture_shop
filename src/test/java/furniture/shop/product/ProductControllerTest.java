@@ -111,7 +111,7 @@ class ProductControllerTest {
     void 상품_등록_실패_테스트2() throws Exception {
         ProductRegisterDto registerDto = getRegisterDto();
 
-        registerDto.setProductCategory(ProductCategory.CHAIR);
+        registerDto.setProductCategory(null);
         registerDto.setProductStatus(ProductStatus.SELLING);
 
         mockMvc.perform(post("/product")
