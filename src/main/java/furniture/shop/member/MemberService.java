@@ -38,7 +38,7 @@ public class MemberService {
                 .phone(dto.getPhone())
                 .email(dto.getEmail())
                 .address(new Address(dto.getZipCode(), dto.getCity(), dto.getStreet()))
-                .gender(MemberGender.valueOf(dto.getMemberGender()))
+                .gender(dto.getMemberGender())
                 .build();
 
         return memberRepository.save(member).getId();

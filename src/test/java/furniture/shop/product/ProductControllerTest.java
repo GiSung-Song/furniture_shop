@@ -111,8 +111,8 @@ class ProductControllerTest {
     void 상품_등록_실패_테스트2() throws Exception {
         ProductRegisterDto registerDto = getRegisterDto();
 
-        registerDto.setProductCategory("CATEGORY");
-        registerDto.setProductStatus("STATUS");
+        registerDto.setProductCategory(ProductCategory.CHAIR);
+        registerDto.setProductStatus(ProductStatus.SELLING);
 
         mockMvc.perform(post("/product")
                         .content(new ObjectMapper().writeValueAsString(registerDto))
@@ -150,7 +150,7 @@ class ProductControllerTest {
     @DisplayName("상품 수정 테스트")
     void 상품_수정_테스트() throws Exception {
         ProductUpdateDto productUpdateDto = new ProductUpdateDto();
-        productUpdateDto.setProductStatus("STOP");
+        productUpdateDto.setProductStatus(ProductStatus.STOP);
 
         mockMvc.perform(patch("/product/{id}", 0L)
                 .accept(MediaType.APPLICATION_JSON)
@@ -164,7 +164,7 @@ class ProductControllerTest {
     @DisplayName("상품 수정 실패 테스트")
     void 상품_수정_실패_테스트() throws Exception {
         ProductUpdateDto productUpdateDto = new ProductUpdateDto();
-        productUpdateDto.setProductStatus("STOP");
+        productUpdateDto.setProductStatus(ProductStatus.STOP);
 
         when(productService.updateProduct(any(), any())).thenThrow(new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
@@ -199,8 +199,8 @@ class ProductControllerTest {
 
         dto.setProductCode("test-1234");
         dto.setProductName("테스트 상품");
-        dto.setProductStatus("SELLING");
-        dto.setProductCategory("CHAIR");
+        dto.setProductStatus(ProductStatus.SELLING);
+        dto.setProductCategory(ProductCategory.CHAIR);
         dto.setLength(102.5);
         dto.setHeight(100.3);
         dto.setWidth(50.7);

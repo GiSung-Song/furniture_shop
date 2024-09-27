@@ -142,7 +142,7 @@ class MemberControllerTest {
     private static MemberJoinDto getMemberJoinDto() {
         MemberJoinDto memberJoinDto = new MemberJoinDto();
 
-        memberJoinDto.setMemberGender("MALE");
+        memberJoinDto.setMemberGender(MemberGender.MALE);
         memberJoinDto.setEmail("test@test.com");
         memberJoinDto.setPhone("01012345678");
         memberJoinDto.setPassword("123456");

@@ -3,7 +3,6 @@ package furniture.shop.product.dto;
 import furniture.shop.configure.valid.EnumValue;
 import furniture.shop.product.constant.ProductStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +15,7 @@ public class ProductUpdateDto {
 
     @Schema(description = "상품상태", example = "SELLING, READY ...")
     @EnumValue(enumClass = ProductStatus.class, message = "SELLING, READY, STOP 중 입력해주세요.")
-    private String productStatus;
+    private ProductStatus productStatus;
 
     @Schema(description = "재고")
     private int stock;

@@ -26,14 +26,12 @@ public class ProductRegisterDto {
     private String productName;
 
     @Schema(description = "카테고리", example = "CHAIR, TABLE, CLOSET ...")
-    @NotBlank(message = "카테고리를 입력해주세요.")
     @EnumValue(enumClass = ProductCategory.class, message = "CHAIR, TABLE, CLOSET, BED 중 입력해주세요.")
-    private String productCategory;
+    private ProductCategory productCategory;
 
-    @NotBlank(message = "상품상태를 입력해주세요.")
     @Schema(description = "상품상태", example = "SELLING, READY ...")
     @EnumValue(enumClass = ProductStatus.class, message = "SELLING, READY, STOP 중 입력해주세요.")
-    private String productStatus;
+    private ProductStatus productStatus;
 
     @Schema(description = "재고")
     private int stock;

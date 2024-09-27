@@ -49,7 +49,7 @@ class CreditControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.resultMsg").value("결제가 완료되었습니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("결제가 완료되었습니다."));
     }
 
     @Test
@@ -65,6 +65,6 @@ class CreditControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.resultMsg").value("환불이 완료되었습니다."));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("환불이 완료되었습니다."));
     }
 }

@@ -3,6 +3,7 @@ package furniture.shop.member;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.global.embed.Address;
+import furniture.shop.member.constant.MemberGender;
 import furniture.shop.member.dto.MemberInfoDto;
 import furniture.shop.member.dto.MemberJoinDto;
 import furniture.shop.member.dto.MemberUpdateDto;
@@ -119,7 +120,7 @@ class MemberServiceTest {
     private static MemberJoinDto getMemberJoinDto() {
         MemberJoinDto memberJoinDto = new MemberJoinDto();
 
-        memberJoinDto.setMemberGender("MALE");
+        memberJoinDto.setMemberGender(MemberGender.MALE);
         memberJoinDto.setEmail("test@test.com");
         memberJoinDto.setPhone("01012345678");
         memberJoinDto.setPassword("123456");

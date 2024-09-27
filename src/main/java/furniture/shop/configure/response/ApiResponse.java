@@ -11,31 +11,31 @@ public class ApiResponse<T> {
 
     private int resultCode;
 
-    private String resultMsg;
+    private String message;
 
     @Builder
-    public ApiResponse(final T result, final int resultCode, final String resultMsg) {
+    public ApiResponse(final T result, final int resultCode, final String message) {
         this.result = result;
         this.resultCode = resultCode;
-        this.resultMsg = resultMsg;
+        this.message = message;
     }
 
     @Builder
-    public ApiResponse(final int resultCode, final String resultMsg) {
+    public ApiResponse(final int resultCode, final String message) {
         this.result = null;
         this.resultCode = resultCode;
-        this.resultMsg = resultMsg;
+        this.message = message;
     }
 
     public static <T> ApiResponse<T> res(final HttpStatus status, final String resultMsg) {
         return res(status, resultMsg, null);
     }
 
-    public static <T> ApiResponse<T> res(final HttpStatus status, final String resultMsg, final T result) {
+    public static <T> ApiResponse<T> res(final HttpStatus status, final String message, final T result) {
         return ApiResponse.<T>builder()
                 .result(result)
                 .resultCode(status.value())
-                .resultMsg(resultMsg)
+                .message(message)
                 .build();
 
     }

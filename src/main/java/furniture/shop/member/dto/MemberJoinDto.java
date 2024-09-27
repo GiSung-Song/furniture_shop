@@ -46,6 +46,5 @@ public class MemberJoinDto {
 
     @Schema(description = "성별", example = "MALE")
     @EnumValue(enumClass = MemberGender.class, message = "MALE or FEMALE 중 입력해주세요.")
-    @NotBlank(message = "성별을 입력해주세요.")
-    private String memberGender;
+    private MemberGender memberGender;
 }

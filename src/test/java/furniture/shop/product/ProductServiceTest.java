@@ -160,8 +160,8 @@ class ProductServiceTest {
 
         dto.setProductCode("test-1234");
         dto.setProductName("테스트 상품");
-        dto.setProductCategory("CHAIR");
-        dto.setProductStatus("SELLING");
+        dto.setProductCategory(ProductCategory.CHAIR);
+        dto.setProductStatus(ProductStatus.SELLING);
         dto.setLength(102.5);
         dto.setHeight(100.3);
         dto.setWidth(50.7);

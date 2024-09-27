@@ -36,8 +36,8 @@ public class ProductService {
         Product product = Product.builder()
                 .productCode(dto.getProductCode())
                 .productName(dto.getProductName())
-                .productCategory(ProductCategory.valueOf(dto.getProductCategory()))
-                .productStatus(ProductStatus.valueOf(dto.getProductStatus()))
+                .productCategory(dto.getProductCategory())
+                .productStatus(dto.getProductStatus())
                 .stock(dto.getStock())
                 .price(dto.getPrice())
                 .size(new ProductSize(dto.getWidth(), dto.getLength(), dto.getHeight()))
@@ -66,8 +66,8 @@ public class ProductService {
 
         Product product = productRepository.findById(productId).get();
 
-        if (StringUtils.hasText(updateDto.getProductStatus())) {
-            product.updateProductStatus(ProductStatus.valueOf(updateDto.getProductStatus()));
+        if (isValidEnumType(updateDto.getProductStatus())) {
+            product.updateProductStatus(updateDto.getProductStatus());
         }
 
         if (StringUtils.hasText(updateDto.getDescription())) {
@@ -91,6 +91,25 @@ public class ProductService {
         }
 
         return detailEntityToDto(product);
+    }
+
+    private boolean isValidEnumType(Enum<?> enumValue) {
+
+        if (enumValue == null) {
+            return false;
+        }
+
+        if (!StringUtils.hasText(enumValue.name())) {
+            return false;
+        }
+
+        for (Enum<?> value : enumValue.getDeclaringClass().getEnumConstants()) {
+            if (enumValue.equals(value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ProductDetailDto detailEntityToDto(Product product) {

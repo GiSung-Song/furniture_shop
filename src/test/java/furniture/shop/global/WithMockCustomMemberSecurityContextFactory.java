@@ -16,7 +16,7 @@ public class WithMockCustomMemberSecurityContextFactory implements WithSecurityC
         UserDetails userDetails = User.builder()
                 .username(annotation.email())
                 .password("12345678")
-                .roles(MemberRole.MEMBER.name())
+                .roles(annotation.role().name())
                 .build();
 
         UsernamePasswordAuthenticationToken authenticationToken =
