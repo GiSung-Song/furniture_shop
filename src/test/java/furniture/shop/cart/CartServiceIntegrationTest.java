@@ -53,6 +53,9 @@ public class CartServiceIntegrationTest {
     @PersistenceContext
     private EntityManager entityManager;
 
+    Product product1;
+    Product product2;
+
     @BeforeEach
     void setUp() {
         Member member = Member.builder()
@@ -67,7 +70,7 @@ public class CartServiceIntegrationTest {
         //member 미리 저장 하여 @WithMockCustomMember 에서 findByEmail != null 을 하기 위함.
         memberRepository.save(member);
 
-        Product product1 = Product.builder()
+        product1 = Product.builder()
                 .productCode("code-1111")
                 .productName("product1111")
                 .productCategory(ProductCategory.CHAIR)
@@ -77,7 +80,7 @@ public class CartServiceIntegrationTest {
                 .description("테스트1111 상품입니다.")
                 .build();
 
-        Product product2 = Product.builder()
+        product2 = Product.builder()
                 .productCode("code-2222")
                 .productName("product2222")
                 .productCategory(ProductCategory.BED)
@@ -100,7 +103,7 @@ public class CartServiceIntegrationTest {
     void 장바구니_추가_성공_테스트() {
         CartProductAddDto cartProductAddDto = new CartProductAddDto();
 
-        cartProductAddDto.setProductId(1L);
+        cartProductAddDto.setProductId(product1.getId());
         cartProductAddDto.setCount(20);
 
         cartService.addCart(cartProductAddDto);
@@ -121,7 +124,7 @@ public class CartServiceIntegrationTest {
     void 장바구니_추가_실패_테스트() {
         CartProductAddDto cartProductAddDto = new CartProductAddDto();
 
-        cartProductAddDto.setProductId(3L); //존재하지 않는 상품
+        cartProductAddDto.setProductId(3214321L); //존재하지 않는 상품
         cartProductAddDto.setCount(20);
 
         CustomException customException = assertThrows(CustomException.class, () -> cartService.addCart(cartProductAddDto));
@@ -134,12 +137,12 @@ public class CartServiceIntegrationTest {
     void 장바구니_조회_성공_테스트() {
         CartProductAddDto cartProductAddDto = new CartProductAddDto();
 
-        cartProductAddDto.setProductId(1L);
+        cartProductAddDto.setProductId(product1.getId());
         cartProductAddDto.setCount(1);
 
         cartService.addCart(cartProductAddDto);
 
-        cartProductAddDto.setProductId(2L);
+        cartProductAddDto.setProductId(product2.getId());
         cartProductAddDto.setCount(1);
 
         cartService.addCart(cartProductAddDto);
@@ -168,19 +171,19 @@ public class CartServiceIntegrationTest {
     void 장바구니_수정_성공_테스트1() {
         CartProductAddDto cartProductAddDto = new CartProductAddDto();
 
-        cartProductAddDto.setProductId(1L);
+        cartProductAddDto.setProductId(product1.getId());
         cartProductAddDto.setCount(10);
 
         cartService.addCart(cartProductAddDto);
 
-        cartProductAddDto.setProductId(2L);
+        cartProductAddDto.setProductId(product2.getId());
         cartProductAddDto.setCount(5);
 
         cartService.addCart(cartProductAddDto);
 
         CartProductEditDto cartProductEditDto = new CartProductEditDto();
 
-        cartProductEditDto.setProductId(1L);
+        cartProductEditDto.setProductId(product1.getId());
         cartProductEditDto.setCount(5);
 
         cartService.editCartProduct(cartProductEditDto);
@@ -198,14 +201,14 @@ public class CartServiceIntegrationTest {
     void 장바구니_수정_성공_테스트2() {
         CartProductAddDto cartProductAddDto = new CartProductAddDto();
 
-        cartProductAddDto.setProductId(2L);
+        cartProductAddDto.setProductId(product2.getId());
         cartProductAddDto.setCount(5);
 
         cartService.addCart(cartProductAddDto);
 
         CartProductEditDto cartProductEditDto = new CartProductEditDto();
 
-        cartProductEditDto.setProductId(2L);
+        cartProductEditDto.setProductId(product2.getId());
         cartProductEditDto.setCount(0);
 
         cartService.editCartProduct(cartProductEditDto);
