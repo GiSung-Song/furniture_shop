@@ -64,7 +64,7 @@ public class ProductQueryRepository {
 
     private BooleanExpression likeProductCode(String productCode) {
         if (StringUtils.hasText(productCode)) {
-            return product.productCode.like(productCode);
+            return product.productCode.like("%" + productCode + "%");
         }
 
         return null;
@@ -72,7 +72,7 @@ public class ProductQueryRepository {
 
     private BooleanExpression likeProductName(String productName) {
         if (StringUtils.hasText(productName)) {
-            return product.productName.like(productName);
+            return product.productName.like("%" + productName + "%");
         }
 
         return null;

@@ -103,7 +103,7 @@ public class CartService {
         }
 
         if (editDto.getCount() == 0) {
-            cartProductRepository.delete(cartProduct);
+            cart.getCartProductList().remove(cartProduct);
         } else {
             cartProduct.editCount(editDto.getCount());
         }

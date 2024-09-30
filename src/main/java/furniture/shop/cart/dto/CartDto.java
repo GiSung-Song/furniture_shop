@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,7 +15,7 @@ import java.util.List;
 public class CartDto {
 
     @Schema(description = "장바구니 상품 리스트")
-    private List<CartProductDto> cartProductDtoList;
+    private List<CartProductDto> cartProductDtoList = new ArrayList<>();
 
     @Schema(description = "총 가격")
     private int totalPrice;

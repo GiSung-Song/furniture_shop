@@ -10,6 +10,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @WithSecurityContext(factory = WithMockCustomMemberSecurityContextFactory.class, setupBefore = TestExecutionEvent.TEST_EXECUTION)
 public @interface WithMockCustomMember {
-    String email() default "string@google.com";
+    String email() default "test@test.com";
     MemberRole role() default MemberRole.MEMBER;
 }

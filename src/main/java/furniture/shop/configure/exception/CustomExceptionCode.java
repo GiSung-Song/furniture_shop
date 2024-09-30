@@ -16,7 +16,8 @@ public enum CustomExceptionCode {
     NOT_SELLING_PRODUCT_EXCEPTION(HttpStatus.BAD_REQUEST, "판매중인 상품이 아닙니다."),
     NOT_VALID_AUTH_ERROR(HttpStatus.FORBIDDEN, "해당 권한이 없습니다."),
     FAIL_PAYMENT(HttpStatus.BAD_REQUEST, "결제가 실패했습니다."),
-    NOT_VALID_PAYMENT(HttpStatus.BAD_REQUEST, "잘못된 결제 요청입니다.")
+    NOT_VALID_PAYMENT(HttpStatus.BAD_REQUEST, "잘못된 결제 요청입니다."),
+    DELETE_FAIL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "삭제 실패 오류입니다."),
     ;
 
     private final HttpStatus httpStatus;
