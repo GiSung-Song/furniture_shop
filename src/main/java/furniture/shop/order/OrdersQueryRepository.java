@@ -53,7 +53,7 @@ public class OrdersQueryRepository {
                         orders.receiver
                 ))
                 .from(orders)
-                .where(QMember.member.id.eq(member.getId()))
+                .where(orders.member.id.eq(member.getId()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(new OrderSpecifier<>(Order.DESC, orders.registerDate))
@@ -62,7 +62,7 @@ public class OrdersQueryRepository {
         JPAQuery<Long> contentQuery = jpaQueryFactory
                 .select(orders.count())
                 .from(orders)
-                .where(QMember.member.id.eq(member.getId()));
+                .where(orders.member.id.eq(member.getId()));
 
         return PageableExecutionUtils.getPage(content, pageable, () -> contentQuery.fetchOne());
     }
