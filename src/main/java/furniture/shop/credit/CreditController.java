@@ -19,15 +19,15 @@ public class CreditController {
 
     private final CreditService creditService;
 
-    @PostMapping("/credit/{id}")
-    @Operation(summary = "결제 요청", description = "결제 요청 API")
+    @PostMapping("/credit/{id}/complete")
+    @Operation(summary = "결제 검증", description = "결제 검증 API")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "결제가 완료되었습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력입니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponse<?>> doCredit(@PathVariable("id") Long orderId, CreditRequestDto dto) {
+    public ResponseEntity<ApiResponse<?>> doCreditComplete(@PathVariable("id") Long orderId, CreditRequestDto dto) {
         dto.setOrderId(orderId);
 
         creditService.createAndVerifyPayment(dto);

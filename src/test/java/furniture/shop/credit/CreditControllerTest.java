@@ -35,8 +35,8 @@ class CreditControllerTest {
     private CreditService creditService;
 
     @Test
-    @DisplayName("결제 테스트")
-    void 결제_테스트() throws Exception {
+    @DisplayName("결제 검증 테스트")
+    void 결제_검증_테스트() throws Exception {
         doNothing().when(creditService).createAndVerifyPayment(any(CreditRequestDto.class));
 
         CreditRequestDto dto = new CreditRequestDto();
@@ -45,7 +45,7 @@ class CreditControllerTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
 
-        mockMvc.perform(post("/credit/{id}", 0L)
+        mockMvc.perform(post("/credit/{id}/complete", 0L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(dto)))
                 .andExpect(status().isOk())

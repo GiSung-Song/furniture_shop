@@ -8,6 +8,7 @@ import com.siot.IamportRestClient.response.Payment;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.credit.dto.CreditRefundRequestDto;
 import furniture.shop.credit.dto.CreditRequestDto;
+import furniture.shop.credit.dto.PaymentInfoDto;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.global.embed.Address;
 import furniture.shop.member.Member;
@@ -19,7 +20,6 @@ import furniture.shop.product.Product;
 import furniture.shop.product.constant.ProductCategory;
 import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.embed.ProductSize;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
@@ -63,7 +64,7 @@ class CreditServiceTest {
 
     @Test
     @DisplayName("결제 실행 및 검증 성공 테스트")
-    void 결제_성공_테스트() throws IamportResponseException, IOException {
+    void 결제_검증_성공_테스트() throws IamportResponseException, IOException {
         Long orderId = 0L;
 
         CreditRequestDto dto = new CreditRequestDto();
@@ -71,27 +72,27 @@ class CreditServiceTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
         dto.setOrderId(orderId);
+        dto.setMerchantUID("merchant_1234");
+        dto.setImpUID("imp_1234");
+
+        IamportResponse<Payment> paymentResponse = mock(IamportResponse.class);
+
+        Payment payment = mock(Payment.class);
+        when(payment.getStatus()).thenReturn("paid");
+        when(iamportClient.paymentByImpUid(any())).thenReturn(paymentResponse);
+        when(paymentResponse.getResponse()).thenReturn(payment);
 
         when(ordersRepository.findById(orderId)).thenReturn(Optional.ofNullable(orders));
         when(memberAuthorizationUtil.getMember()).thenReturn(member);
-
-        Payment payment = mock(Payment.class);
-        when(payment.getImpUid()).thenReturn("imp_1234");
-        when(payment.getStatus()).thenReturn("paid");
-
-        IamportResponse<Payment> paymentResponse = mock(IamportResponse.class);
-        when(paymentResponse.getResponse()).thenReturn(payment);
-
-        when(iamportClient.paymentByImpUid(anyString())).thenReturn(paymentResponse);
 
         creditService.createAndVerifyPayment(dto);
 
         verify(ordersRepository, times(1)).findById(orderId);
         verify(creditRepository, times(1)).save(any(Credit.class));
-        verify(iamportClient, times(2)).paymentByImpUid(anyString());
+        verify(iamportClient, times(1)).paymentByImpUid(anyString());
         verify(memberAuthorizationUtil, times(1)).getMember();
-        Assertions.assertEquals(OrdersStatus.FINISH, orders.getOrdersStatus());
-        Assertions.assertEquals(10000, member.getMileage());
+        assertEquals(OrdersStatus.FINISH, orders.getOrdersStatus());
+        assertEquals(10000, member.getMileage());
     }
 
     @Test
@@ -104,10 +105,12 @@ class CreditServiceTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
         dto.setOrderId(orderId);
+        dto.setMerchantUID("merchant_1234");
+        dto.setImpUID("imp_1234");
 
         when(ordersRepository.findById(orderId)).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
 
         verify(ordersRepository, times(1)).findById(any());
         verify(creditRepository, never()).save(any());
@@ -124,6 +127,8 @@ class CreditServiceTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
         dto.setOrderId(orderId);
+        dto.setMerchantUID("merchant_1234");
+        dto.setImpUID("imp_1234");
 
         when(ordersRepository.findById(orderId)).thenReturn(Optional.ofNullable(orders));
 
@@ -138,7 +143,7 @@ class CreditServiceTest {
 
         when(memberAuthorizationUtil.getMember()).thenReturn(newMember);
 
-        Assertions.assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
 
         verify(ordersRepository, times(1)).findById(any());
         verify(memberAuthorizationUtil, times(1)).getMember();
@@ -155,13 +160,15 @@ class CreditServiceTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
         dto.setOrderId(orderId);
+        dto.setMerchantUID("merchant_1234");
+        dto.setImpUID("imp_1234");
 
         orders.updateOrdersStatus(OrdersStatus.FINISH);
 
         when(ordersRepository.findById(orderId)).thenReturn(Optional.ofNullable(orders));
         when(memberAuthorizationUtil.getMember()).thenReturn(member);
 
-        Assertions.assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
 
         verify(ordersRepository, times(1)).findById(any());
         verify(memberAuthorizationUtil, times(1)).getMember();
@@ -178,24 +185,24 @@ class CreditServiceTest {
         dto.setAmount(100000);
         dto.setPayMethod("card");
         dto.setOrderId(orderId);
+        dto.setMerchantUID("merchant_1234");
+        dto.setImpUID("imp_1234");
 
         when(ordersRepository.findById(orderId)).thenReturn(Optional.ofNullable(orders));
         when(memberAuthorizationUtil.getMember()).thenReturn(member);
 
         Payment payment = mock(Payment.class);
-        when(payment.getImpUid()).thenReturn("imp_1234");
         when(payment.getStatus()).thenReturn("failed");
 
         IamportResponse<Payment> paymentResponse = mock(IamportResponse.class);
+        when(iamportClient.paymentByImpUid(anyString())).thenReturn(paymentResponse);
         when(paymentResponse.getResponse()).thenReturn(payment);
 
-        when(iamportClient.paymentByImpUid(anyString())).thenReturn(paymentResponse);
-
-        Assertions.assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.createAndVerifyPayment(dto));
 
         verify(ordersRepository, times(1)).findById(orderId);
         verify(creditRepository, never()).save(any(Credit.class));
-        verify(iamportClient, times(2)).paymentByImpUid(anyString());
+        verify(iamportClient, times(1)).paymentByImpUid(anyString());
         verify(memberAuthorizationUtil, times(1)).getMember();
     }
 
@@ -222,11 +229,11 @@ class CreditServiceTest {
 
         creditService.cancelPayment(dto);
 
-        Assertions.assertEquals(OrdersStatus.CANCEL, orders.getOrdersStatus());
-        Assertions.assertNotNull(credit.getCancelledAt());
-        Assertions.assertEquals(20, product.getStock());
-        Assertions.assertEquals(-10, product.getSellingCount());
-        Assertions.assertEquals(-10000, member.getMileage());
+        assertEquals(OrdersStatus.CANCEL, orders.getOrdersStatus());
+        assertNotNull(credit.getCancelledAt());
+        assertEquals(20, product.getStock());
+        assertEquals(-10, product.getSellingCount());
+        assertEquals(-10000, member.getMileage());
     }
 
     @Test
@@ -242,7 +249,7 @@ class CreditServiceTest {
 
         when(creditRepository.findByImpUID(anyString())).thenReturn(null);
 
-        Assertions.assertThrows(CustomException.class, () -> creditService.cancelPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.cancelPayment(dto));
     }
 
     @Test
@@ -265,7 +272,46 @@ class CreditServiceTest {
         when(iamportClient.paymentByImpUid(any())).thenReturn(paymentResponse);
         when(paymentResponse.getResponse()).thenReturn(payment);
 
-        Assertions.assertThrows(CustomException.class, () -> creditService.cancelPayment(dto));
+        assertThrows(CustomException.class, () -> creditService.cancelPayment(dto));
+    }
+
+    @Test
+    @DisplayName("결제 정보 가져오기")
+    void 결제_정보_가져오기() {
+        when(ordersRepository.findById(0L)).thenReturn(Optional.ofNullable(orders));
+        when(memberAuthorizationUtil.getMember()).thenReturn(member);
+
+        PaymentInfoDto paymentInfo = creditService.getPaymentInfo(0L);
+
+        assertNotNull(paymentInfo);
+        assertEquals("order_0", paymentInfo.getProductName());
+        assertEquals("서울시 강남구 강남대로 114 테스트 빌딩 5층", paymentInfo.getAddress());
+    }
+
+    @Test
+    @DisplayName("결제 정보 가져오기 실패 - 주문 번호 오류")
+    void 결제_정보_가져오기_실패_주문() {
+        when(ordersRepository.findById(0L)).thenReturn(Optional.ofNullable(null));
+
+        assertThrows(CustomException.class, () -> creditService.getPaymentInfo(0L));
+    }
+
+    @Test
+    @DisplayName("결제 정보 가져오기 실패 - 회원 오류")
+    void 결제_정보_가져오기_실패_회원() {
+        Member member2 = Member.builder()
+                .address(new Address("12345", "서울시 강남구 강남대로 114", "테스트 빌딩 5층"))
+                .email("test@test.com")
+                .password("123456")
+                .phone("01012345678")
+                .username("테스터")
+                .id(1L)
+                .build();
+
+        when(ordersRepository.findById(0L)).thenReturn(Optional.ofNullable(orders));
+        when(memberAuthorizationUtil.getMember()).thenReturn(member2);
+
+        assertThrows(CustomException.class, () -> creditService.getPaymentInfo(0L));
     }
 
     @BeforeEach

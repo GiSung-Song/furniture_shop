@@ -3,13 +3,13 @@ package furniture.shop.credit;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
-import com.siot.IamportRestClient.request.PrepareData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import furniture.shop.configure.exception.CustomException;
 import furniture.shop.configure.exception.CustomExceptionCode;
 import furniture.shop.credit.dto.CreditRefundRequestDto;
 import furniture.shop.credit.dto.CreditRequestDto;
+import furniture.shop.credit.dto.PaymentInfoDto;
 import furniture.shop.global.MemberAuthorizationUtil;
 import furniture.shop.member.Member;
 import furniture.shop.order.Orders;
@@ -24,11 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,12 +37,12 @@ public class CreditService {
     private final CreditRepository creditRepository;
 
     /**
-     * 결제 요청 및 검증
+     * 결제 검증
      * Credit entity 생성 및 저장
      * 상품 재고--, 판매량++
      * 회원 마일리지++
      * 주문 상태 변경
-     * @param creditRequestDto 결제금액, 결제방법
+     * @param creditRequestDto 결제금액, 결제 고유번호, 결제 번호, 결제방법
      */
     @Transactional
     public void createAndVerifyPayment(CreditRequestDto creditRequestDto) {
@@ -72,58 +68,45 @@ public class CreditService {
             throw new CustomException(CustomExceptionCode.NOT_VALID_ERROR);
         }
 
-        // 결제 고유번호 생성
-        String merchantUID = makeMerchantUID();
+        // 결제 고유번호 ImpUID를 이용하여 결제 검증
+        String impUID = creditRequestDto.getImpUID();
 
-        // 결제 요청
-        PrepareData prepareData = new PrepareData(merchantUID, BigDecimal.valueOf(creditRequestDto.getAmount()));
-        IamportResponse<Payment> paymentResponse = null;
+        IamportResponse<Payment> validationResponse;
 
         try {
-            paymentResponse = iamportClient.paymentByImpUid(merchantUID);
-        } catch (IamportResponseException | IOException e) {
-            log.info(">>> 결제 요청 중 오류 : {} <<<", e.getMessage());
+            validationResponse = iamportClient.paymentByImpUid(impUID);
+        } catch (IamportResponseException e) {
+            log.info(">>> 결제 검증 중 오류 : {} <<<", e.getMessage());
+
+            throw new CustomException(CustomExceptionCode.FAIL_PAYMENT);
+        } catch (IOException e) {
+            log.info(">>> 결제 검증 중 오류 : {} <<<", e.getMessage());
 
             throw new CustomException(CustomExceptionCode.FAIL_PAYMENT);
         }
 
-        if (paymentResponse.getResponse() != null) {
-            // iamport 결제 고유 번호
-            String impUid = paymentResponse.getResponse().getImpUid();
+        // 결제 성공 여부 체크
+        if (validationResponse.getResponse() != null && "paid".equals(validationResponse.getResponse().getStatus())) {
+            // 결제 성공 시 결제 entity 생성 및 저장
+            Credit credit = Credit.createCredit(orders, creditRequestDto.getAmount(), creditRequestDto.getMerchantUID(),
+                    creditRequestDto.getImpUID(), creditRequestDto.getPayMethod());
+            creditRepository.save(credit);
 
-            // 결제 검증
-            IamportResponse<Payment> validationResponse = null;
+            // 결제 성공 시 상품 stock - , sellCount +
+            for (OrdersProduct ordersProduct : orders.getOrdersProducts()) {
+                Product product = ordersProduct.getProduct();
 
-            try {
-                validationResponse = iamportClient.paymentByImpUid(impUid);
-            } catch (IamportResponseException | IOException e) {
-                log.info(">>> 결제 검증 중 오류 : {} <<<", e.getMessage());
-
-                throw new CustomException(CustomExceptionCode.FAIL_PAYMENT);
+                product.addSellCount(ordersProduct.getCount());
+                product.minusStock(ordersProduct.getCount());
             }
 
-            // 결제 성공 여부 체크
-            if (validationResponse.getResponse() != null && validationResponse.getResponse().getStatus().equals("paid")) {
-                // 결제 성공 시 결제 entity 생성 및 저장
-                Credit credit = Credit.createCredit(orders, creditRequestDto.getAmount(), merchantUID, impUid, creditRequestDto.getPayMethod());
-                creditRepository.save(credit);
+            // 주문 상태 변경, 회원 마일리지 적립
+            orders.updateOrdersStatus(OrdersStatus.FINISH);
+            member.savedMileage(credit.getSavedMileage());
+        } else {
+            log.info(">>> 결제 실패 <<<");
 
-                // 결제 성공 시 상품 stock - , sellCount +
-                for (OrdersProduct ordersProduct : orders.getOrdersProducts()) {
-                    Product product = ordersProduct.getProduct();
-
-                    product.addSellCount(ordersProduct.getCount());
-                    product.minusStock(ordersProduct.getCount());
-                }
-
-                // 주문 상태 변경, 회원 마일리지 적립
-                orders.updateOrdersStatus(OrdersStatus.FINISH);
-                member.savedMileage(credit.getSavedMileage());
-            } else {
-                log.info(">>> 결제 실패 <<<");
-
-                throw new CustomException(CustomExceptionCode.FAIL_PAYMENT);
-            }
+            throw new CustomException(CustomExceptionCode.FAIL_PAYMENT);
         }
     }
 
@@ -232,12 +215,31 @@ public class CreditService {
         member.minusMileage(credit.getSavedMileage());
     }
 
-    private String makeMerchantUID() {
-        String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+    @Transactional(readOnly = true)
+    public PaymentInfoDto getPaymentInfo(Long orderId) {
+        // 주문 정보 가져오기, 없다면 throw
+        Orders orders = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
-        String uuid = UUID.randomUUID().toString();
+        Member member = memberAuthorizationUtil.getMember();
 
-        return "order_" + today + "_" + uuid;
+        // 현재 사용자와 주문자가 다른 경우
+        if (orders.getMember().getId() != member.getId()) {
+            log.info(">>> 현재 사용자와 주문자가 다른 경우 <<<");
+
+            throw new CustomException(CustomExceptionCode.NOT_VALID_AUTH_ERROR);
+        }
+
+        PaymentInfoDto paymentInfoDto = new PaymentInfoDto();
+
+        paymentInfoDto.setProductName("order_" + orderId);
+        paymentInfoDto.setAmount(orders.getTotalPrice());
+        paymentInfoDto.setName(orders.getMember().getUsername());
+        paymentInfoDto.setPhone(orders.getPhone());
+        paymentInfoDto.setZipCode(orders.getAddress().getZipCode());
+        paymentInfoDto.setEmail(orders.getMember().getEmail());
+        paymentInfoDto.setAddress(orders.getAddress().getCity() + " " + orders.getAddress().getStreet());
+
+        return paymentInfoDto;
     }
-
 }
