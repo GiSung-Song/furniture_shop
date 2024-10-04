@@ -27,3 +27,4 @@ https://www.erdcloud.com/d/2LT45g7ncsDdZYS7J
  - 장바구니(등록, 수정, 조회)
  - 주문(등록, 조회, 수정)
  - 결제, 환불(Iamport API 호출)
+ - 리뷰(등록, 수정, 삭제)
