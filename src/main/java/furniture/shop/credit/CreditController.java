@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -27,7 +28,7 @@ public class CreditController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponse<?>> doCreditComplete(@PathVariable("id") Long orderId, CreditRequestDto dto) {
+    public ResponseEntity<ApiResponse<?>> doCreditComplete(@PathVariable("id") Long orderId, @RequestBody CreditRequestDto dto) {
         dto.setOrderId(orderId);
 
         creditService.createAndVerifyPayment(dto);
@@ -43,7 +44,7 @@ public class CreditController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "권한이 없습니다.", content = @Content(mediaType = "application/json")),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다.", content = @Content(mediaType = "application/json"))
     })
-    public ResponseEntity<ApiResponse<?>> doRefund(@PathVariable("impUID") String impUID, CreditRefundRequestDto dto) {
+    public ResponseEntity<ApiResponse<?>> doRefund(@PathVariable("impUID") String impUID, @RequestBody CreditRefundRequestDto dto) {
         dto.setImpUID(impUID);
 
         creditService.cancelPayment(dto);

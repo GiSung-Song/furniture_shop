@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ class ProductServiceTest {
         List<ProductListDto> productListDtoList = new ArrayList<>();
 
         for(int i = 0; i <= 10; i++) {
-            ProductListDto productListDto = new ProductListDto(Long.valueOf(i), "name" + i, ProductStatus.SELLING, ProductCategory.CHAIR);
+            ProductListDto productListDto = new ProductListDto(Long.valueOf(i), "name" + i, ProductStatus.SELLING, ProductCategory.CHAIR, new Random().nextLong());
 
             productListDtoList.add(productListDto);
         }

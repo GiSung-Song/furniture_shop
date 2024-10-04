@@ -6,12 +6,16 @@ import furniture.shop.product.constant.ProductCategory;
 import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.dto.*;
 import furniture.shop.product.embed.ProductSize;
+import furniture.shop.review.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -126,6 +130,27 @@ public class ProductService {
         productDetailDto.setPrice(product.getPrice());
         productDetailDto.setStock(product.getStock());
         productDetailDto.setSellingCount(product.getSellingCount());
+
+        List<Review> reviews = product.getReviews();
+        List<ProductDetailDto.ReviewDto> reviewDtoList = new ArrayList<>();
+
+        for (Review review : reviews) {
+            ProductDetailDto.ReviewDto reviewDto = new ProductDetailDto.ReviewDto();
+
+            reviewDto.setReviewId(review.getId());
+            reviewDto.setUsername(review.getMember().getUsername());
+            reviewDto.setRate(review.getRate());
+            reviewDto.setComment(review.getComment());
+            reviewDto.setCreateDate(review.getRegisterDate());
+
+            if (review.getUpdateDate() != null) {
+                reviewDto.setUpdateDate(review.getUpdateDate());
+            }
+
+            reviewDtoList.add(reviewDto);
+        }
+
+        productDetailDto.setReviewDtoList(reviewDtoList);
 
         return productDetailDto;
     }

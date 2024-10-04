@@ -3,6 +3,7 @@ package furniture.shop.product;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import furniture.shop.product.constant.ProductCategory;
@@ -10,6 +11,7 @@ import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.dto.ProductListDto;
 import furniture.shop.product.dto.ProductSearchCondition;
 import furniture.shop.product.dto.QProductListDto;
+import furniture.shop.review.QReview;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -19,6 +21,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 import static furniture.shop.product.QProduct.product;
+import static furniture.shop.review.QReview.*;
 
 @Repository
 public class ProductQueryRepository {
@@ -35,15 +38,18 @@ public class ProductQueryRepository {
                         product.id,
                         product.productName,
                         product.productStatus,
-                        product.productCategory
+                        product.productCategory,
+                        review.count()
                 ))
                 .from(product)
+                .leftJoin(product.reviews, review)
                 .where(
                         likeProductCode(searchCondition.getProductCode()),
                         likeProductName(searchCondition.getProductName()),
                         eqStatus(searchCondition.getProductStatus()),
                         eqCategory(searchCondition.getProductCategory())
                 )
+                .groupBy(product.id)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .orderBy(new OrderSpecifier<>(Order.ASC, product.id))

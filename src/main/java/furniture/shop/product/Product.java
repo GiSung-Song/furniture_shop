@@ -4,10 +4,14 @@ import furniture.shop.configure.BaseTimeEntity;
 import furniture.shop.product.constant.ProductCategory;
 import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.embed.ProductSize;
+import furniture.shop.review.Review;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -49,6 +53,10 @@ public class Product extends BaseTimeEntity {
 
     @ColumnDefault("0")
     private Long sellingCount;
+
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
 
     public void updateProductStatus(ProductStatus productStatus) {
         this.productStatus = productStatus;

@@ -27,6 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.awaitility.Awaitility.given;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +52,7 @@ class ProductControllerTest {
         List<ProductListDto> productListDtoList = new ArrayList<>();
 
         for(int i = 0; i <= 10; i++) {
-            ProductListDto productListDto = new ProductListDto(Long.valueOf(i), "name" + i, ProductStatus.SELLING, ProductCategory.CHAIR);
+            ProductListDto productListDto = new ProductListDto(Long.valueOf(i), "name" + i, ProductStatus.SELLING, ProductCategory.CHAIR, new Random().nextLong());
 
             productListDtoList.add(productListDto);
         }

@@ -26,11 +26,15 @@ public class ProductListDto {
     @Schema(description = "카테고리")
     private ProductCategory productCategory;
 
+    @Schema(description = "리뷰 개수")
+    private Long reviewCount;
+
     @QueryProjection
-    public ProductListDto(Long id, String productName, ProductStatus productStatus, ProductCategory productCategory) {
+    public ProductListDto(Long id, String productName, ProductStatus productStatus, ProductCategory productCategory, Long reviewCount) {
         this.id = id;
         this.productName = productName;
         this.productStatus = productStatus;
         this.productCategory = productCategory;
+        this.reviewCount = reviewCount;
     }
 }
