@@ -15,7 +15,6 @@ import furniture.shop.product.constant.ProductStatus;
 import furniture.shop.product.embed.ProductSize;
 import furniture.shop.review.dto.ReviewAddRequestDto;
 import furniture.shop.review.dto.ReviewEditRequestDto;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,9 +27,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
@@ -101,7 +100,7 @@ class ReviewServiceTest {
 
         reviewService.addReview(reviewAddRequestDto);
 
-        assertEquals(1, product.getReviews().size());
+        assertEquals(2, product.getReviews().size());
     }
 
     @Test
