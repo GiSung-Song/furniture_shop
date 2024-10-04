@@ -55,9 +55,12 @@ public class OrdersService {
         }
 
         Orders orders = Orders.createOrders(member);
+        ordersRepository.save(orders);
+
         OrdersProduct ordersProduct = OrdersProduct.createOrdersProduct(orders, product, ordersSingleDto.getCount());
 
-        ordersRepository.save(orders);
+        //총 가격
+        orders.editTotalPrice(ordersProduct.getTotalPrice());
     }
 
     @Transactional
@@ -71,10 +74,13 @@ public class OrdersService {
         }
 
         Orders orders = Orders.createOrders(member);
+        ordersRepository.save(orders);
+
         List<OrdersProduct> ordersProducts = new ArrayList<>();
+        int sumPrice = 0;
 
         for (int i = 0; i < cart.getCartProductList().size(); i++) {
-            Product product = productRepository.findById(cart.getCartProductList().get(i).getId())
+            Product product = productRepository.findById(cart.getCartProductList().get(i).getProduct().getId())
                     .orElseThrow(() -> new CustomException(CustomExceptionCode.NOT_VALID_ERROR));
 
             //상품이 판매중이 아니면 throw
@@ -90,9 +96,14 @@ public class OrdersService {
             OrdersProduct ordersProduct = OrdersProduct.createOrdersProduct(orders, product, cart.getCartProductList().get(i).getCount());
 
             ordersProducts.add(ordersProduct);
+
+            sumPrice += ordersProduct.getTotalPrice();
         }
 
-        ordersRepository.save(orders);
+        orders.editTotalPrice(sumPrice);
+
+        //장바구니 비우기
+        cart.resetCart();
     }
 
     @Transactional

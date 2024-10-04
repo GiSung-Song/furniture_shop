@@ -54,12 +54,19 @@ public class CartProduct {
     }
 
     public void editCount(int count) {
+        int nowCount = this.count; //현재 개수
+        int price = this.product.getPrice(); //가격
+
+        // 개수가 줄어들면
+        if (nowCount > count) {
+            // 줄어든 만큼 총 가격 -
+            this.cart.minusTotalPrice((this.count - count) * price);
+        } else if (nowCount < count) { //개수가 늘어나면
+            // 개수가 늘어난 만큼 총 가격 +
+            this.cart.addTotalPrice((count - this.count) * price);
+        }
+
         this.count = count;
-        this.cart.editTotalPrice(count * product.getPrice());
     }
 
-    public void addCount(int count) {
-        this.cart.addTotalPrice(count * product.getPrice());
-        this.count += count;
-    }
 }

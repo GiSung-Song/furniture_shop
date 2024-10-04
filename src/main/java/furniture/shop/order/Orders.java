@@ -65,6 +65,10 @@ public class Orders extends BaseTimeEntity {
         this.ordersStatus = ordersStatus;
     }
 
+    public void editTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
     public static Orders createOrders(Member member) {
         Orders orders = new Orders();
 

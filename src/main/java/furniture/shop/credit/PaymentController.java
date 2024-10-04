@@ -23,8 +23,8 @@ public class PaymentController {
     private String iamportApiKey;
 
     @GetMapping("/payment/{id}")
-    public String showPaymentPage(@PathVariable("id") Long orderId) {
-        return "payment";
+    public String showPaymentPage(@PathVariable("id") String orderId) {
+        return "/payment/payment";
     }
 
     @GetMapping("/payment/merchant")

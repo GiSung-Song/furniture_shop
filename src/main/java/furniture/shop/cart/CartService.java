@@ -45,14 +45,14 @@ public class CartService {
 
         //장바구니에 기존 상품이 있다면 count ++
         if (savedCartProduct != null) {
-            savedCartProduct.addCount(dto.getCount());
+            savedCartProduct.editCount(savedCartProduct.getCount() + dto.getCount());
         } else {
             CartProduct cartProduct = CartProduct.createCartProduct(cart, product, dto.getCount());
             cartProductRepository.save(cartProduct);
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public CartDto getCart() {
         Member member = memberAuthorizationUtil.getMember();
 
@@ -104,6 +104,9 @@ public class CartService {
 
         if (editDto.getCount() == 0) {
             cart.getCartProductList().remove(cartProduct);
+
+            // 삭제했으므로 장바구니 총 가격 -
+            cart.minusTotalPrice(cartProduct.getCount() * cartProduct.getProduct().getPrice());
         } else {
             cartProduct.editCount(editDto.getCount());
         }

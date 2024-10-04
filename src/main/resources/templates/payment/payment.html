@@ -28,11 +28,13 @@
                 const pathArr = window.location.pathname.split("/");
                 const orderId = pathArr[pathArr.length - 1];
 
-                const infoResponse = await aixos.get('/payment/' + orderId);
+                const infoResponse = await axios.get('/payment/' + orderId + "/info");
                 const paymentInfo = infoResponse.data;
 
                 // 가맹점 식별코드를 사용해 Iamport 초기화
                 IMP.init(iamportApiKey);
+
+                console.log(paymentInfo);
 
                 // 결제 요청
                 IMP.request_pay({

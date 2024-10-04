@@ -38,8 +38,13 @@ public class Cart {
         this.totalPrice += price;
     }
 
-    public void editTotalPrice(int price) {
-        this.totalPrice = price;
+    public void minusTotalPrice(int price) {
+        this.totalPrice -= price;
+    }
+
+    public void resetCart() {
+        this.totalPrice = 0;
+        this.cartProductList.clear();
     }
 
     public static Cart createCart(Member member) {

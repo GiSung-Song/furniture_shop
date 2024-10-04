@@ -16,6 +16,5 @@ public class CartProductEditDto {
     private Long productId;
 
     @Schema(description = "개수")
-    @Min(1)
     private int count;
 }
