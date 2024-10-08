@@ -39,5 +39,6 @@ out/
 ### properties ###
 *.yml
 
+!docker-compose.yml
 !gradle.yml
 !application-test.yml
