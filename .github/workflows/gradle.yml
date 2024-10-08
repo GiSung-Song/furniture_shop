@@ -61,3 +61,12 @@ jobs:
 
       - name: Docker Hub Push # DockerHub로 push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.PROJECT_NAME }}
+
+      - name: Deploy Application
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+        run: |
+          echo "Deploying application..."
+          docker-compose pull
+          docker-compose up -d
