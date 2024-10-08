@@ -11,9 +11,9 @@ services:
     restart: always # 컨테이너가 중지되면 항상 재시작
     environment:
       LOGSTASH_HOST: logstash # Logstash 서비스 이름
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${{ secrets.DBNAME }}?serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.PASSWORD }}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       - mysql
 
@@ -23,10 +23,10 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: ${{ secrets.DBNAME }}
-      MYSQL_USER: ${{ secrets.USERNAME }}
-      MYSQL_PASSWORD: ${{ secrets.PASSWORD }}
-      MYSQL_ROOT_PASSWORD: ${{ secrets.PASSWORD }}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     networks:
       - app-network
 

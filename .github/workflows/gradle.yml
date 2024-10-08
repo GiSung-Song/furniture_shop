@@ -43,7 +43,12 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Start MySQL Docker Container
-        run: docker-compose up -d mysql
+        env:
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DBNAME }}
+          MYSQL_USER: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        run: |
+          docker-compose up -d mysql
 
       - name: Wait MySQL Ready
         run: |
