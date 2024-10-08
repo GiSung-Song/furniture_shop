@@ -11,9 +11,22 @@ services:
     restart: always # 컨테이너가 중지되면 항상 재시작
     environment:
       LOGSTASH_HOST: logstash # Logstash 서비스 이름
-      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3306/${{ secrets.MYSQL_DBNAME }}?serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.MYSQL_USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${{ secrets.DBNAME }}?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.PASSWORD }}
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${{ secrets.DBNAME }}
+      MYSQL_USER: ${{ secrets.USERNAME }}
+      MYSQL_PASSWORD: ${{ secrets.PASSWORD }}
+      MYSQL_ROOT_PASSWORD: ${{ secrets.PASSWORD }}
+    networks:
+      - app-network
 
   elasticsearch:
     build:
