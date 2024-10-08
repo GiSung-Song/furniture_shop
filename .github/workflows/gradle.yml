@@ -27,17 +27,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin' # jdk를 제공하는 vender사 이름 ex) zulu, adopt, microsoft
 
-      - name: Cache Gradle Package # gradle caching 많이 변경되지 않는 의존성 파일들을 캐싱하여 속도 향상
-        id: cache-gradle
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }} # 의존성 파일의 해시를 기반으로 캐시 키 설정
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Setup Gradle
-        if: steps.cache-gradle.outputs.cache-hit != 'true'
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Make Properties From Submodule
