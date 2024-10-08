@@ -27,7 +27,55 @@ jobs:
           java-version: '17'
           distribution: 'temurin' # jdk를 제공하는 vender사 이름 ex) zulu, adopt, microsoft
 
+      - name: Cache Docker Compose
+        id: cache-docker-compose
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/docker-compose
+          key: ${{ runner.os }}-docker-compose-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-compose
+
+      - name: Install Docker Compose # Docker Compose 설치
+        if: steps.cache-docker-compose.outputs.cache-hit != 'true' # 캐시 없을 경우에만 설치
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Start MySQL Docker Container
+        env:
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DBNAME }}
+          MYSQL_USER: ${{ secrets.MYSQL_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        run: |
+          docker-compose up -d mysql
+
+      - name: Wait MySQL Ready
+        run: |
+          MAX_RETRIES=30
+          COUNT=0
+          until docker exec mysql mysqladmin ping --silent || [ $COUNT -eq $MAX_RETRIES ]; do
+            echo "Waiting for MySQL..."
+            sleep 2
+            COUNT=$((COUNT + 1))
+          done
+          
+          if [ $COUNT -eq $MAX_RETRIES ]; then
+            echo "MySQL did not become ready in time."
+            exit 1
+          fi
+
+      - name: Cache Gradle Package # gradle caching 많이 변경되지 않는 의존성 파일들을 캐싱하여 속도 향상
+        id: cache-gradle
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }} # 의존성 파일의 해시를 기반으로 캐시 키 설정
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Setup Gradle
+        if: steps.cache-gradle.outputs.cache-hit != 'true'
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Make Properties From Submodule
@@ -35,14 +83,6 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.SUBMODULE_ACCESS_KEY }}
-
-      - name: Test Database MySQL
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3306
-          mysql database: ${{ secrets.MYSQL_DBNAME }}
-          mysql user: ${{ secrets.MYSQL_USERNAME }}
-          mysql password: ${{ secrets.MYSQL_PASSWORD }}
 
       - name: Grant Execute Permission for gradlew
         run: chmod +x ./gradlew
@@ -62,21 +102,6 @@ jobs:
       - name: Docker Hub Push # DockerHub로 push
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
-      - name: Cache Docker Compose
-        id: cache-docker-compose
-        uses: actions/cache@v3
-        with:
-          path: /usr/local/bin/docker-compose
-          key: ${{ runner.os }}-docker-compose-${{ hashFiles('**/Dockerfile') }}
-          restore-keys: |
-            ${{ runner.os }}-docker-compose
-
-      - name: Install Docker Compose # Docker Compose 설치
-        if: steps.cache-docker-compose.outputs.cache-hit != 'true' # 캐시 없을 경우에만 설치
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
       - name: Deploy Application
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -86,5 +111,5 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
           echo "Deploying application..."
-          docker-compose pull
-          docker-compose up -d
+          docker-compose pull app
+          docker-compose up -d app elasticsearch logstash kibana
