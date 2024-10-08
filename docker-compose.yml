@@ -14,6 +14,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${{ secrets.DBNAME }}?serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${{ secrets.USERNAME }}
       SPRING_DATASOURCE_PASSWORD: ${{ secrets.PASSWORD }}
+    depends_on:
+      - mysql
 
   mysql:
     image: mysql:latest
