@@ -71,6 +71,5 @@ processResources.dependsOn('copySecret')
 tasks.register('copySecret', Copy) {
 	from './sub'
 	include "application*.yml"
-	include "logger-back.yml"
 	into 'src/main/resources'
 }
