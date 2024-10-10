@@ -42,6 +42,12 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: Make Properties From Submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.SUBMODULE_ACCESS_KEY }}
+
       - name: Start MySQL Docker Container
         env:
           MYSQL_DATABASE: ${{ secrets.MYSQL_DBNAME }}
@@ -78,12 +84,6 @@ jobs:
         if: steps.cache-gradle.outputs.cache-hit != 'true'
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Make Properties From Submodule
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          token: ${{ secrets.SUBMODULE_ACCESS_KEY }}
-
       - name: Grant Execute Permission for gradlew
         run: chmod +x ./gradlew
 
@@ -107,6 +107,12 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         run: |
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DBNAME }}"
+          echo "MYSQL_USER=${{ secrets.MYSQL_USERNAME }}"
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}"
+          echo "DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}"
+          echo "PROJECT_NAME: ${{ secrets.PROJECT_NAME }}"
+          
           echo "Deploying application..."
-          docker-compose pull app
+          docker-compose pull furniture
           docker-compose up -d furniture
