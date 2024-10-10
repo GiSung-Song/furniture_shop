@@ -7,6 +7,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SecurityException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -54,17 +55,20 @@ public class JwtFilter extends OncePerRequestFilter {
             } else if (StringUtils.hasText(accessToken) && tokenProvider.isExpiredAccessToken(accessToken)) {
                 log.info("AccessToken 만료되어 있는 경우 accessToken 재발급");
 
-                Authentication authentication = tokenProvider.getAuthentication(accessToken);
-                String refreshToken = redisTemplate.opsForValue().get(authentication);
+                String refreshToken = getRefreshToken(request);
 
                 if (StringUtils.hasText(refreshToken) && tokenProvider.validateToken(refreshToken)) {
                     // refreshToken 유효하면 accessToken 재발급
-                    log.info("AccessToken 재발급");
+                    Authentication authentication = tokenProvider.getAuthentication(refreshToken);
 
-                    String newAccessToken = tokenProvider.createToken(authentication);
-                    tokenProvider.sendAccessToken(response, newAccessToken);
+                    if (refreshToken.equals(redisTemplate.opsForValue().get(authentication.getName()))) {
+                        log.info("AccessToken 재발급");
 
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                        String newAccessToken = tokenProvider.createToken(authentication);
+                        tokenProvider.sendAccessToken(response, newAccessToken);
+
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
                 }
             }
         } catch (SecurityException | MalformedJwtException e) {
@@ -80,6 +84,20 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String getRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 
 }

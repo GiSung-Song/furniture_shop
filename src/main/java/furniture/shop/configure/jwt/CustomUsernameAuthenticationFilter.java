@@ -66,7 +66,8 @@ public class CustomUsernameAuthenticationFilter extends UsernamePasswordAuthenti
         String accessToken = tokenProvider.createToken(authResult);
 
         tokenProvider.sendAccessToken(response, accessToken);
-        tokenProvider.createRefreshToken(authResult);
+        String refreshToken = tokenProvider.createRefreshToken(authResult);
+        tokenProvider.sendRefreshToken(response, refreshToken);
 
         log.info("JWT 발급 완료");
         log.info("AccessToken : {}", accessToken);

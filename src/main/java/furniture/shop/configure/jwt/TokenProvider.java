@@ -8,6 +8,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,18 @@ public class TokenProvider {
         return refreshToken;
     }
 
+    public void sendRefreshToken(HttpServletResponse response, String refreshToken) {
+        log.info("RefreshToken 쿠키로 설정");
+
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge((int) (refreshTokenExpiration / 1000));
+
+        response.addCookie(cookie);
+    }
+
     //Token에 담겨있는 정보를 이용해 Authentication 객체를 리턴하는 메서드
     public Authentication getAuthentication(String token) {
         log.info("인증 Authentication 가져오기");
@@ -109,7 +122,7 @@ public class TokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        String email = (String) claims.get("email");
+        String email = (String) claims.get(EMAIL_CLAIM);
 
         Member member = memberRepository.findByEmail(email);
 
