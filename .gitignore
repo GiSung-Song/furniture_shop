@@ -39,8 +39,7 @@ out/
 ### properties ###
 *.yml
 
-docker-compose.yml
-prometheus.yml
-
+!docker-compose.yml
+!prometheus.yml
 !gradle.yml
 !application-test.yml
