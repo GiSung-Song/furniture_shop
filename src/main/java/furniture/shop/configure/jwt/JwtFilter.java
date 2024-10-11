@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,20 +28,29 @@ public class JwtFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
+    @Value("${app.allowed.ip}")
+    private List<String> allowedIps;
+
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenProvider tokenProvider;
 
     //토큰의 인증정보를 SecurityContext에 저장하는 역할 수행
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
 
-        if (request.getRequestURI().equals("/login")) {
-            filterChain.doFilter(request, response);
-            return;
+        // 헬스체크 Endpoint는 해당 IP만 허용하고 인증을 하지 않음
+        if (requestURI.equals("/actuator/prometheus") || requestURI.equals("/actuator/health")) {
+            String clientIP = request.getRemoteAddr();
+
+            if (allowedIps.contains(clientIP)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
         }
 
         String accessToken = tokenProvider.resolveToken(request);
-        String requestURI = request.getRequestURI();
 
         try {
             if (StringUtils.hasText(accessToken) && tokenProvider.validateToken(accessToken)) {
