@@ -4,7 +4,3 @@ scrape_configs:
     scrape_interval: 10s
     static_configs:
       - targets: ['furniture:8080']
-  - job_name: 'health-check'
-    metrics_path: '/actuator/health'
-    static_configs:
-      - targets: ['furniture:8080']

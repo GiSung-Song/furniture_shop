@@ -79,7 +79,6 @@ public class SpringSecurity {
                                 .requestMatchers(HttpMethod.GET, "/product").permitAll()
                                 .requestMatchers(HttpMethod.PATCH, "/product/{id}").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/product").hasRole("ADMIN")
-                                .requestMatchers("/actuator/prometheus", "/actuator/health").permitAll()
                                 .anyRequest().authenticated())
                 .csrf(CsrfConfigurer::disable)
                 .httpBasic(HttpBasicConfigurer::disable)
