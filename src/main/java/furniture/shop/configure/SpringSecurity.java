@@ -76,6 +76,7 @@ public class SpringSecurity {
                         request.requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**",
                                         "/api-docs", "/api-docs/**", "/v3/api-docs/**", "/").permitAll()
                                 .requestMatchers("/join").permitAll()
+                                .requestMatchers("/actuator/prometheus").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/product").permitAll()
                                 .requestMatchers(HttpMethod.PATCH, "/product/{id}").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.POST, "/product").hasRole("ADMIN")
