@@ -28,3 +28,9 @@ https://www.erdcloud.com/d/2LT45g7ncsDdZYS7J
  - 주문(등록, 조회, 수정)
  - 결제, 환불(Iamport API 호출)
  - 리뷰(등록, 수정, 삭제)
+
+---
+### 추가로 적용해보고 공부하는 것들
+ - 모니터링 (prometheus, grafana)
+ - docker-compose (각각의 컨테이너로 구성)
+ - 로그 모니터링 (ELK 예정)
