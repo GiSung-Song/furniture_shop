@@ -33,4 +33,4 @@ https://www.erdcloud.com/d/2LT45g7ncsDdZYS7J
 ### 추가로 적용해보고 공부하는 것들
  - 모니터링 (prometheus, grafana)
  - docker-compose (각각의 컨테이너로 구성)
- - 로그 모니터링 (ELK 예정)
+ - 로그 모니터링 (ELK)
